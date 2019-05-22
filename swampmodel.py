@@ -112,8 +112,7 @@ class MarshGenerator():
         output = []
         for i in range(self._ntaxa):
             output.append([])
-        feature_sizes = list(scipy.random.poisson(self._model["lambda"],self._nfeatures))
-        print(feature_sizes)
+        feature_sizes = scipy.random.poisson(self._model["lambda"],self._nfeatures)
         for i in range(self._nfeatures):
             classes = feature_sizes[i]
             cognates = range(classes)
