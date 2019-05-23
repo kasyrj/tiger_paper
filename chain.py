@@ -4,11 +4,10 @@ import random
 import scipy.stats
 
 import dataframe
-from simulator import Simulator
 
 dummy_isos = set(["".join(chars) for chars in itertools.combinations("abcdefghijklmnopqrstuvwxyz",3)])
 
-class ChainSimulator(Simulator):
+class ChainSimulator():
 
     def __init__(self, n_langs, n_features, cognate_birthrate=0.001, cognate_gamma=1.0, borrowing_rate=0.5):
         self.n_langs = n_langs

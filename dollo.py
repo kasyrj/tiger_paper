@@ -1,15 +1,26 @@
+import itertools
 import random
 
+import dendropy
 from dendropy.simulate import treesim
 import scipy.stats
 
 import dataframe
-from simulator import Simulator
 
-class DolloSimulator(Simulator):
+dummy_isos = set(["".join(chars) for chars in itertools.combinations("abcdefghijklmnopqrstuvwxyz",3)])
 
-    def __init__(self, tree, n_features, cognate_birthrate=0.5, cognate_gamma=1.0):
-        Simulator.__init__(self, tree, n_features)
+def generate_yule_tree(taxa, birthrate=1.0, taxa_names=None):
+    names = random.sample(dummy_isos, min(taxa, len(dummy_isos)))
+    fancytaxa = dendropy.TaxonNamespace(names)
+    tree = treesim.birth_death_tree(birth_rate=birthrate, death_rate=0.0, ntax=taxa, taxon_namespace=fancytaxa)
+    return tree
+
+class DolloSimulator():
+
+    def __init__(self, n_languages, n_features, cognate_birthrate=0.5, cognate_gamma=1.0):
+        tree = generate_yule_tree(n_languages, 1.0)
+        self.tree = tree
+        self.n_features = n_features
         self.cognate_birthrate = cognate_birthrate
         self.cognate_gamma = cognate_gamma
 
