@@ -10,7 +10,7 @@ PARSER_DESC = "Produce a non-tree-like cognate set dataset."
 if __name__=="__main__":
 
     parser = argparse.ArgumentParser(description=PARSER_DESC)
-
+    
     parser.add_argument("-t", "--taxa",
                         dest="ntaxa",
                         help="Number of taxa (languages) to generate. Default: 26",
@@ -25,19 +25,18 @@ if __name__=="__main__":
                         default=313,
                         type=int)
 
-    parser.add_argument("-m","--min_classes",
-                        dest="minclasses",
-                        help="Minimum number of cognate classes per feature. Default: 1",
-                        metavar='MINCLASSES',
-                        default=1,
-                        type=int)
+    parser.add_argument("-m", "--model",
+                        dest="model",
+                        help="Which model is used to generate the data. Options: simple, poisson.",
+                        default="simple",
+                        type=str)
 
-    parser.add_argument("-M","--max_classes",
-                        dest="maxclasses",
-                        help="Minimum number of cognate classes per feature. Default: 26",
-                        metavar='MAXCLASSES',
-                        default=26,
-                        type=int)
+    parser.add_argument("-p", "--parameters",
+                        dest="params",
+                        help="Model parameters. For 'simple' one should specify \"min=n max=m\"  where 'min'is the minimum number of cognate classes and 'max' the maximum number of classes (which should not exceed the number of taxa). For 'poisson' one should specify \"lambda=l\", specifying the expected average number of cognate classes.",
+                        default=["min=1", "max=26", "lambda=12"],
+                        nargs="+",
+                        type=str)
 
     parser.add_argument("-n","--name_length",
                         dest="namelength",
@@ -54,10 +53,15 @@ if __name__=="__main__":
 
     
     args = parser.parse_args()
+    model = {}
+    model["type"] = args.model
+    for elem in args.params:
+        parts = elem.split("=")
+        model[parts[0]] = int(parts[1])
+        
     m = swampmodel.MarshGenerator(args.nfeatures,
-                             args.ntaxa,
-                             args.randomseed,
-                             args.minclasses,
-                             args.maxclasses,
-                             args.namelength)
+                                  args.ntaxa,
+                                  args.randomseed,
+                                  args.namelength,
+                                  model)
     m.generate().print() 

@@ -2,6 +2,7 @@
 
 import random
 import string
+import scipy
 
 class MarshData():
     _taxa = None
@@ -40,28 +41,33 @@ class MarshGenerator():
     _nfeatures = 0
     _ntaxa = 0
     _random_seed = None
-    _min_classes = 0
-    _max_classes = 0
     _taxon_namelen = 0
+    _model = None
 
-    def __init__(self,nfeatures = 0, ntaxa = 0, random_seed = None, min_classes = 0, max_classes = 0, taxon_namelen = 0):
+    def __init__(self, nfeatures = 0, ntaxa = 0, random_seed = None, taxon_namelen = 0, model=None):
         assert isinstance(nfeatures,int),"nfeatures must be an integer"
         assert isinstance(ntaxa,int),"ntaxa must be an integer"
-        assert isinstance(min_classes,int),"min_classes must be an integer"
-        assert isinstance(max_classes,int),"max_classes must be an integer"
         assert isinstance(taxon_namelen,int),"taxon_namelen must be an integer"
         assert taxon_namelen > 0, "taxon name length must be 1 or more"
-        assert min_classes <= max_classes, "min_classes cannot exceed max_classes"
-        assert max_classes <= ntaxa, "max_classes cannot exceed ntaxa"
         assert ntaxa > 0, "ntaxa must be 1 or more"
         assert nfeatures > 0, "nfeatures must be 1 or more"
         random.seed(random_seed)
         self._random_seed = random_seed
         self._nfeatures = nfeatures
         self._ntaxa = ntaxa
-        self._min_classes = min_classes
-        self._max_classes = max_classes
         self._taxon_namelen = taxon_namelen
+        self.assertModel(model)
+        self._model = model
+
+    def assertModel(self,model):
+        assert (model["type"] in ("simple","poisson")), "Unrecognized model"
+        if model["type"] == "poisson":
+            assert isinstance(model["lambda"],int), "Lambda must be an integer"
+        elif model["type"] == "simple":
+            assert isinstance(model["min"],int),"Model parameter 'min' must be an integer"
+            assert isinstance(model["max"],int),"Model parameter 'max' must be an integer"
+            assert model["min"] <= model["max"], "Model parameter 'min' cannot exceed 'max'"
+            assert model["max"] <= self._ntaxa, "Model parameter 'max' cannot exceed 'ntaxa'"
 
     def generate(self):
         taxa = self._generateTaxa()
@@ -86,16 +92,35 @@ class MarshGenerator():
         return taxon
 
     def _generateAlignment(self):
+        if self._model["type"] == "simple":
+            return self._generateSimpleAlignment()
+        if self._model["type"] == "poisson":
+            return self._generatePoissonAlignment()
+    
+    def _generateSimpleAlignment(self):
         output = []
         for i in range(self._ntaxa):
             output.append([])
         for i in range(self._nfeatures):
-            classes = random.randint(self._min_classes,self._max_classes)
+            classes = random.randint(self._model["min"],self._model["max"])
             cognates = range(classes)
             for j in range(self._ntaxa):
                 output[j].append(random.choice(cognates))
         return output
 
+    def _generatePoissonAlignment(self):
+        output = []
+        for i in range(self._ntaxa):
+            output.append([])
+        feature_sizes = scipy.random.poisson(self._model["lambda"],self._nfeatures)
+        for i in range(self._nfeatures):
+            classes = feature_sizes[i]
+            cognates = range(classes)
+            for j in range(self._ntaxa):
+                output[j].append(random.choice(cognates))
+        return output
+
+    
     def _generateFeatureNames(self):
         output = []
         for i in range(1,self._nfeatures+1):
