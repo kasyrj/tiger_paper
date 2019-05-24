@@ -34,6 +34,8 @@ class MarshGenerator():
             model["max"] = self._ntaxa
         if "samples" not in model.keys():
             model["samples"] = 10
+        if "lambda" in model:
+            model["lambda"] = float(model["lambda"])
         self.assertModel(model)
         self._model = model
 
