@@ -92,7 +92,7 @@ class MarshGenerator():
         # Generate cognate class counts
         feature_sizes = dist.rvs(self._nfeatures)
         test_counter = int(self._model["samples"])
-        while 0 in feature_sizes:
+        while 0 in feature_sizes or max(feature_sizes) > self._model["max"]:
             feature_sizes = dist.rvs(self._nfeatures)
             test_counter -= 1
             if test_counter == 0:
