@@ -26,6 +26,8 @@ class MarshGenerator():
         if model == None:
             # Default model
             model = { "type": "simple" }
+        if model["type"] == "poisson" and "lambda" not in model:
+            model["lambda"] = ntaxa / 2.0
         if "min" not in model.keys():
             model["min"] = 1
         if "max" not in model.keys():
@@ -38,7 +40,7 @@ class MarshGenerator():
     def assertModel(self,model):
         assert (model["type"] in ("simple","poisson")), "Unrecognized model"
         if model["type"] == "poisson":
-            assert isinstance(model["lambda"],int), "Lambda must be an integer"
+            assert isinstance(model["lambda"],float), "Lambda must be a float"
             assert isinstance(model["samples"],int), "Samples must be an interger"
         elif model["type"] == "simple":            
             assert isinstance(model["min"],int),"Model parameter 'min' must be an integer"

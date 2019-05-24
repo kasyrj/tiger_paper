@@ -45,7 +45,7 @@ def main():
         simulator = ChainSimulator(options.languages, options.features, options.cognate_birthrate, options.gamma, options.borrowing)
     elif options.model == "swamp":
         # Further process swamp-specific options
-        model = {}
+        model = { "type": "simple" }
         for elem in options.params:
             parts = elem.split("=")
             try:
