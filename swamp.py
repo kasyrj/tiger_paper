@@ -33,8 +33,8 @@ if __name__=="__main__":
 
     parser.add_argument("-p", "--parameters",
                         dest="params",
-                        help="Model parameters. For 'simple' one should specify \"min=n max=m\"  where 'min'is the minimum number of cognate classes and 'max' the maximum number of classes (which should not exceed the number of taxa). For 'poisson' one should specify \"lambda=l\", specifying the expected average number of cognate classes.",
-                        default=["min=1", "max=26", "lambda=12"],
+                        help="Model parameters. For 'simple' one should specify \"min=n max=m\"  where 'min'is the minimum number of cognate classes and 'max' the maximum number of classes (which should not exceed the number of taxa). For 'poisson' one should specify \"lambda=l\", specifying the expected average number of cognate classes. Low lambda values may not work, as they're more likely to contain zeroes. To try to overcome this, you can specify \"samples=s\" to attempt to sample the distribution multiple times. By default the model attempts to sample 10 times before giving up.",
+                        default=["min=1", "max=26", "lambda=12","samples=10"],
                         nargs="+",
                         type=str)
 

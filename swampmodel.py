@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-import random
 import string
 import scipy
+import numpy
 
 class MarshData():
     _taxa = None
@@ -51,11 +51,23 @@ class MarshGenerator():
         assert taxon_namelen > 0, "taxon name length must be 1 or more"
         assert ntaxa > 0, "ntaxa must be 1 or more"
         assert nfeatures > 0, "nfeatures must be 1 or more"
-        random.seed(random_seed)
+        if random_seed != None:
+            try:
+                int(random_seed)
+            except ValueError:
+                print("The random seed should be an integer.")
+                exit(1)
+            numpy.random.seed(int(random_seed))
         self._random_seed = random_seed
         self._nfeatures = nfeatures
         self._ntaxa = ntaxa
         self._taxon_namelen = taxon_namelen
+        if "min" not in model.keys():
+            model["min"] = 1
+        if "max" not in model.keys():
+            model["max"] = self._ntaxa
+        if "samples" not in model.keys():
+            model["samples"] = 10
         self.assertModel(model)
         self._model = model
 
@@ -63,7 +75,8 @@ class MarshGenerator():
         assert (model["type"] in ("simple","poisson")), "Unrecognized model"
         if model["type"] == "poisson":
             assert isinstance(model["lambda"],int), "Lambda must be an integer"
-        elif model["type"] == "simple":
+            assert isinstance(model["samples"],int), "Samples must be an interger"
+        elif model["type"] == "simple":            
             assert isinstance(model["min"],int),"Model parameter 'min' must be an integer"
             assert isinstance(model["max"],int),"Model parameter 'max' must be an integer"
             assert model["min"] <= model["max"], "Model parameter 'min' cannot exceed 'max'"
@@ -88,7 +101,7 @@ class MarshGenerator():
     def _generateTaxon(self):
         taxon = ""
         for i in range(self._taxon_namelen):
-            taxon += random.choice(string.ascii_lowercase)
+            taxon += numpy.random.choice(list(string.ascii_lowercase))
         return taxon
 
     def _generateAlignment(self):
@@ -102,10 +115,10 @@ class MarshGenerator():
         for i in range(self._ntaxa):
             output.append([])
         for i in range(self._nfeatures):
-            classes = random.randint(self._model["min"],self._model["max"])
+            classes = numpy.random.randint(self._model["min"],self._model["max"] + 1)
             cognates = range(classes)
             for j in range(self._ntaxa):
-                output[j].append(random.choice(cognates))
+                output[j].append(numpy.random.choice(cognates))
         return output
 
     def _generatePoissonAlignment(self):
@@ -113,11 +126,19 @@ class MarshGenerator():
         for i in range(self._ntaxa):
             output.append([])
         feature_sizes = scipy.random.poisson(self._model["lambda"],self._nfeatures)
+        test_counter = int(self._model["samples"])
+        while test_counter > 0:
+            if 0 in feature_sizes:
+                feature_sizes = scipy.random.poisson(self._model["lambda"],self._nfeatures)
+            test_counter -= 1
+        if 0 in feature_sizes:
+            print("Could not generate a suitable sample of features with " + str(self._model["samples"]) + " sampling attempts. Try a higher lambda value or increase the number of sampling attempts.")
+            exit(1)
         for i in range(self._nfeatures):
             classes = feature_sizes[i]
             cognates = range(classes)
             for j in range(self._ntaxa):
-                output[j].append(random.choice(cognates))
+                output[j].append(numpy.random.choice(cognates))
         return output
 
     
