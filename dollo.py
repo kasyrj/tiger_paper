@@ -60,3 +60,5 @@ class DolloSimulator():
                 if iso not in self.data.data:
                     self.data.data[iso] = {}
                 self.data.data[iso]["f_%03d" % i] = trans[leaf.cognate]
+
+        return data

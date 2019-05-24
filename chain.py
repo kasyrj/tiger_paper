@@ -76,3 +76,5 @@ class ChainSimulator():
                 if lang not in self.data.data:
                     self.data.data[lang] = {}
                 self.data.data[lang]["f_%03d" % i] = trans[cognate]
+
+        return self.data
