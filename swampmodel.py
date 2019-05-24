@@ -75,35 +75,27 @@ class MarshGenerator():
         return taxon
 
     def _generateAlignment(self):
-        if self._model["type"] == "simple":
-            return self._generateSimpleAlignment()
-        if self._model["type"] == "poisson":
-            return self._generatePoissonAlignment()
-    
-    def _generateSimpleAlignment(self):
         output = []
         for i in range(self._ntaxa):
             output.append([])
-        for i in range(self._nfeatures):
-            classes = numpy.random.randint(self._model["min"],self._model["max"] + 1)
-            cognates = range(classes)
-            for j in range(self._ntaxa):
-                output[j].append(numpy.random.choice(cognates))
-        return output
 
-    def _generatePoissonAlignment(self):
-        output = []
-        for i in range(self._ntaxa):
-            output.append([])
-        feature_sizes = scipy.random.poisson(self._model["lambda"],self._nfeatures)
+        # Get appropriate distribution
+        if self._model["type"] == "simple":
+            dist = scipy.stats.randint(self._model["min"],self._model["max"] + 1)
+        if self._model["type"] == "poisson":
+            dist = scipy.stats.poisson(self._model["lambda"])
+
+        # Generate cognate class counts
+        feature_sizes = dist.rvs(self._nfeatures)
         test_counter = int(self._model["samples"])
-        while test_counter > 0:
-            if 0 in feature_sizes:
-                feature_sizes = scipy.random.poisson(self._model["lambda"],self._nfeatures)
+        while 0 in feature_sizes:
+            feature_sizes = dist.rvs(self._nfeatures)
             test_counter -= 1
-        if 0 in feature_sizes:
-            print("Could not generate a suitable sample of features with " + str(self._model["samples"]) + " sampling attempts. Try a higher lambda value or increase the number of sampling attempts.")
-            exit(1)
+            if test_counter == 0:
+                print("Could not generate a suitable sample of features with " + str(self._model["samples"]) + " sampling attempts. Try different parameters, or increase the number of sampling attempts.")
+                exit(1)
+
+        # Assign taxa to cognate classes
         for i in range(self._nfeatures):
             classes = feature_sizes[i]
             cognates = range(classes)
