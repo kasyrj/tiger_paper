@@ -3,6 +3,7 @@
 import string
 import scipy
 import numpy
+import random
 
 import dataframe
 
@@ -28,14 +29,18 @@ class MarshGenerator():
             model = { "type": "simple" }
         if model["type"] == "poisson" and "lambda" not in model:
             model["lambda"] = ntaxa / 2.0
-        if "min" not in model.keys():
+        if "min" not in model:
             model["min"] = 1
-        if "max" not in model.keys():
+        if "max" not in model:
             model["max"] = self._ntaxa
-        if "samples" not in model.keys():
+        if "samples" not in model:
             model["samples"] = 10
         if "lambda" in model:
             model["lambda"] = float(model["lambda"])
+        if "alpha" in model:
+            model["alpha"] = float(model["alpha"])
+        else:
+            model["alpha"] = 100.0
         self.assertModel(model)
         self._model = model
 
@@ -51,9 +56,11 @@ class MarshGenerator():
             assert model["max"] <= self._ntaxa, "Model parameter 'max' cannot exceed 'ntaxa'"
 
     def generate_data(self):
+        # Generate data
         taxa = self._generateTaxa()
         alignment = self._generateAlignment()
         features = self._generateFeatureNames()
+        # Insert into harvest-style DataFrame
         data = dataframe.DataFrame()
         for taxon, values in zip(taxa, alignment):
             if taxon not in data.data:
@@ -100,14 +107,41 @@ class MarshGenerator():
                 exit(1)
 
         # Assign taxa to cognate classes
-        for i in range(self._nfeatures):
-            classes = feature_sizes[i]
-            cognates = range(classes)
-            for j in range(self._ntaxa):
-                output[j].append(numpy.random.choice(cognates))
+        for classes in feature_sizes:
+            # For each meaning, we're going to generate a list `assignments`, which contains one element per language.
+            # The elements indicate which cognate class a language is assigned to.
+            # E.g. If there were 3 cognate classes for a meaning, and 10 languages, a valid `assignments` might be:
+            # assignments = [0, 1, 1, 0, 2, 0, 0, 0, 0, 2]
+            # We are generating these knowing only the number of cognates, e.g. 3 above.
+            # It is a requirement that each cognate class is represented at least once.  So, we start off `assignments`
+            # by sampling each cognate class precisely once (in numeric order, but fear not, all will get shuffled at the end)
+            assignments = list(range(classes))
+            # Now, we probably need to make some additional assignments.  How many?
+            remaining = self._ntaxa - len(assignments)
+            if remaining:
+                # Now, we don't care, for the remaining assignments, that every cognate class is represented at least once.
+                # We can just sample randomly, and add the results to what we already have.  We could just sample uniformly
+                # from range(0, classes) (and previously did!), but it's not realistic that all cognate classes are equally
+                # sized on average.  So, let's instead sample the remaining assignments from a non-uniform multinomial
+                # distribution, which is itself sampled from a symmetric Dirichlet distribution.  By setting the Dirichlet's
+                # alpha parameter very high, we can gracefully degrade to the original uniform distribution.
+                # First, sample the multinomial probabilities.
+                multinomial_probs = scipy.stats.dirichlet.rvs(alpha=[self._model["alpha"]]*classes)[0]
+                # Now sample the counts of each class, after making `remaining` draws from the multinomial dist
+                multinomial_counts = scipy.stats.multinomial.rvs(n=remaining,p=multinomial_probs)
+                # Add the actual assignments to `assignments`
+                for j,count in enumerate(multinomial_counts):
+                    assignments.extend([j]*count)
+            # Shuffle everything as promised earlier
+            random.shuffle(assignments)
+            # Sanity checks
+            assert len(assignments) == self._ntaxa
+            assert len(set(assignments)) == classes
+            # Add to master output
+            for j, x in enumerate(assignments):
+                output[j].append(x)
         return output
 
-    
     def _generateFeatureNames(self):
         output = []
         for i in range(1,self._nfeatures+1):
