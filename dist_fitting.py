@@ -9,11 +9,10 @@ import scipy.stats
 
 # First, read the cognate class counts
 cognate_counts = []
-with open("counts.csv","r") as fp:
+with open("uralex_min_counts.csv","r") as fp:
     for line in fp:
-        freq, cognates = line.strip().split(",")
-        for i in range(0, int(freq)):
-            cognate_counts.append(int(cognates))
+        meaning, cognates = line.strip().split(",")
+        cognate_counts.append(int(cognates))
 
 # Functions to fit a
 # Binomial distribution (N is fixed to number of languages in UraLex, so the
