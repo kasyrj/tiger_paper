@@ -29,6 +29,10 @@ class MarshGenerator():
             model = { "type": "simple" }
         if model["type"] == "poisson" and "lambda" not in model:
             model["lambda"] = ntaxa / 2.0
+        if model["type"] == "negbinom" and "n" not in model:
+            model["n"] = 8
+        if model["type"] == "negbinom" and "p" not in model:
+            model["p"] = 0.45
         if "min" not in model:
             model["min"] = 1
         if "max" not in model:
@@ -45,10 +49,13 @@ class MarshGenerator():
         self._model = model
 
     def assertModel(self,model):
-        assert (model["type"] in ("simple","poisson")), "Unrecognized model"
+        assert (model["type"] in ("simple","poisson","negbinom")), "Unrecognized model"
         if model["type"] == "poisson":
             assert isinstance(model["lambda"],float), "Lambda must be a float"
             assert isinstance(model["samples"],int), "Samples must be an interger"
+        elif model["type"] == "negbinom":
+            assert isinstance(model["n"],int), "n must be an int"
+            assert isinstance(model["p"],float), "p must be a float"
         elif model["type"] == "simple":            
             assert isinstance(model["min"],int),"Model parameter 'min' must be an integer"
             assert isinstance(model["max"],int),"Model parameter 'max' must be an integer"
@@ -93,8 +100,10 @@ class MarshGenerator():
         # Get appropriate distribution
         if self._model["type"] == "simple":
             dist = scipy.stats.randint(self._model["min"],self._model["max"] + 1)
-        if self._model["type"] == "poisson":
+        elif self._model["type"] == "poisson":
             dist = scipy.stats.poisson(self._model["lambda"])
+        elif self._model["type"] == "negbinom":
+            dist = scipy.stats.nbinom(self._model["n"], self._model["p"])
 
         # Generate cognate class counts
         feature_sizes = dist.rvs(self._nfeatures)
