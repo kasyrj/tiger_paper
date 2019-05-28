@@ -44,7 +44,7 @@ class MarshGenerator():
         if "alpha" in model:
             model["alpha"] = float(model["alpha"])
         else:
-            model["alpha"] = 100.0
+            model["alpha"] = 0.9
         self.assertModel(model)
         self._model = model
 
