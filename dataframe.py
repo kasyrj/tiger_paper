@@ -32,7 +32,8 @@ class DataFrame:
             for iso in iso_codes:
                 if random.random() <= borrowing_rate:
                     borrowers.append(iso)
-                else:
-                    borrowable_values.append(self.data[iso][f])
             for iso in borrowers:
+                current_value = self.data[iso][f]
+                borrowable_values = [self.data[i][f] for i in iso_codes if i!=iso]
+                assert current_value not in borrowable_values
                 self.data[iso][f] = random.sample(borrowable_values,1)[0]
