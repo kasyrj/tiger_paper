@@ -51,11 +51,11 @@ def fit_nbinomial(cognate_counts):
     best_lh = -999999999999999999999999
     for step in range(0, 100):
         p = step*0.01
-        for r in range(0,30):
-            lh = get_nbinomial_likelihood(r, p, cognate_counts)
+        for n in range(0,30):
+            lh = get_nbinomial_likelihood(n, p, cognate_counts)
             if lh > best_lh:
-                best_p, best_r, best_lh = p, r, lh
-    return (best_r, best_p), best_lh
+                best_n, best_p, best_lh = n, p, lh
+    return (best_n, best_p), best_lh
 
 # Functions to fit a
 # Poisson distribution.
