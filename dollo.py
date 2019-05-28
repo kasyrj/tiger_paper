@@ -61,4 +61,4 @@ class DolloSimulator():
                     self.data.data[iso] = {}
                 self.data.data[iso]["f_%03d" % i] = trans[leaf.cognate]
 
-        return data
+        return self.data
