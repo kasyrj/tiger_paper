@@ -12,7 +12,7 @@ dummy_isos = set(["".join(chars) for chars in itertools.combinations("abcdefghij
 def generate_yule_tree(taxa, birthrate=1.0, taxa_names=None):
     names = random.sample(dummy_isos, min(taxa, len(dummy_isos)))
     fancytaxa = dendropy.TaxonNamespace(names)
-    tree = treesim.birth_death_tree(birth_rate=birthrate, death_rate=0.0, ntax=taxa, taxon_namespace=fancytaxa)
+    tree = treesim.birth_death_tree(birth_rate=birthrate, death_rate=0.0, num_extant_tips=taxa, taxon_namespace=fancytaxa)
     return tree
 
 class DolloSimulator():
