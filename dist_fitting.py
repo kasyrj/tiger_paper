@@ -14,6 +14,31 @@ with open("uralex_min_counts.csv","r") as fp:
         meaning, cognates = line.strip().split(",")
         cognate_counts.append(int(cognates))
 
+max_props = []
+with open("uralex_max_props.csv","r") as fp:
+    for line in fp:
+        max_props.append(float(line))
+mean_max_props = sum(max_props) / len(max_props)
+
+# First, try to fit Dirichlet alpha so as to match mean max_props
+N=26
+best_delta = 9999999
+# Rough initial fit
+for alpha in (0.01, 0.1,0.8, 0.9, 1.0, 1.1, 1.2, 10.0,100.0,1000):
+    sim_max_props = []
+    for i in range(0,10):
+        for count in cognate_counts:
+            multinomial_probs = scipy.stats.dirichlet.rvs(alpha=[alpha]*count)[0]
+            multinomial_counts = scipy.stats.multinomial.rvs(n=N,p=multinomial_probs)
+            max_prop = max(multinomial_counts)/N
+            sim_max_props.append(max_prop)
+    mean_sim_max_props = sum(sim_max_props) / len(sim_max_props)
+    delta = abs(mean_sim_max_props - mean_max_props)
+    if delta < best_delta:
+        best_delta = delta
+        best_alpha = alpha
+print("Alpha: ", best_alpha)
+
 # Functions to fit a
 # Binomial distribution (N is fixed to number of languages in UraLex, so the
 # maximum possible number of cognates is automatically enforced.  Only p is
