@@ -148,3 +148,6 @@ if __name__ == '__main__':
     for i in glob.glob(os.path.join(harvestdir,"*.csv")):
         run_tiger(i,["-f","harvest"])
         harvest_to_nexus(i)
+
+    print("Plotting results...")
+    run([PYTHON_CMD, "make_plots.py"])
