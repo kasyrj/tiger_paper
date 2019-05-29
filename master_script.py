@@ -20,6 +20,7 @@ TIGER_URL        = 'https://github.com/kasyrj/tiger-calculator/archive/b94fd57aa
 TIGER_ZIP        = "tiger-calculator.zip"
 TIGER_FOLDER     = "tiger-calculator-b94fd57aadfdf26905e9ff3ecb92cc60c51bb140"
 N_REPETITIONS    = 1
+URALEX_BASE      = "uralex"
 SWAMP_BASE       = 'swamp'
 SWAMP_PARAMS     = ["-m", "swamp", "-p", "min=1", "max=10"]
 DIALECT_BASE     = 'dialect'
@@ -66,12 +67,15 @@ def run_generator_with_params(output_directory,filebase,params):
         code,out,err = run([PYTHON_CMD, "generate.py"] + params)
         write_lines_to_file(out.decode("utf-8"), os.path.join(output_directory,filebase + "_" + str(i+1).zfill(len(str(N_REPETITIONS))) + ".csv"))
 
-def run_tiger(filename,params):
+def run_tiger(filename,params,outfile=None):
     params = params + [filename]
     tigercmd = os.path.join(MATERIALS_FOLDER,TIGER_FOLDER, "tiger-calculator.py")
     code,out,err = run([PYTHON_CMD, tigercmd] + params)
     print(err.decode("utf-8"))
-    write_lines_to_file(out.decode("utf-8"), filename + "_rates.txt")
+    if outfile == None:
+        write_lines_to_file(out.decode("utf-8"), filename + "_rates.txt")
+    else:
+        write_lines_to_file(out.decode("utf-8"), outfile + "_rates.txt")
 
         
 if __name__ == '__main__':
@@ -90,9 +94,6 @@ if __name__ == '__main__':
         exit(1)
 
     print("Successfully created folder %s" % ANALYSIS_FOLDER)
-
-    print("Calculating TIGER rates for UraLex dataset...")
-    print("Done.")
 
     print("Generating swamp data...")
     swampdir = os.path.join(ANALYSIS_FOLDER,SWAMP_BASE)
@@ -114,6 +115,17 @@ if __name__ == '__main__':
     run_generator_with_params(output_directory=harvestdir, filebase=HARVEST_BASE, params=HARVEST_PARAMS)
     print("Done.")
 
+    print("Running TIGER for UraLex dataset...")
+    uralexdir = os.path.join(ANALYSIS_FOLDER,URALEX_BASE)
+    try:
+        os.mkdir(uralexdir)
+    except OSError:
+        print("Failed to create folder %s." % uralexdir)
+        exit(1)
+    uralexdata = os.path.join(MATERIALS_FOLDER,URALEX_FOLDER,"cldf")
+    run_tiger(uralexdata,["-f","cldf"],outfile=os.path.join(uralexdir,URALEX_BASE))
+    print("Done.")    
+
     print("Running TIGER for swamp data...")
     for i in glob.glob(os.path.join(swampdir,"*.csv")):
         run_tiger(i,["-f","harvest"])
@@ -129,8 +141,3 @@ if __name__ == '__main__':
     print("Running TIGER for harvest data...")
     for i in glob.glob(os.path.join(harvestdir,"*.csv")):
         run_tiger(i,["-f","harvest"])
-
-
-
-
-
