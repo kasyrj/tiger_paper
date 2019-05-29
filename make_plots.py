@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import glob
-import os.path
+import os, os.path
 
 import scipy.stats
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ def cognate_class_count_plot():
     a, b = ax2.get_ylim()
     ax2.set_ylim(0.0,b)
     plt.tight_layout()
-    plt.savefig("cognate_dist.png")
+    plt.savefig("plots/cognate_dist.png")
 
 def tiger_rate_plot():
     dfs = []
@@ -53,8 +53,10 @@ def tiger_rate_plot():
     ax.set_xticks([0.00, 0.25,0.50,0.75,1.00])
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.savefig("tiger_rates_plot.png")
+    plt.savefig("plots/tiger_rates_plot.png")
 
 if __name__ == "__main__":
+    if not os.path.exists("plots"):
+        os.mkdir("plots")
     cognate_class_count_plot()
     tiger_rate_plot()
