@@ -77,6 +77,9 @@ def run_tiger(filename,params,outfile=None):
     else:
         write_lines_to_file(out.decode("utf-8"), outfile + "_rates.txt")
 
+def harvest_to_nexus(filename):
+    code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename])
+    write_lines_to_file(out.decode("utf-8"), filename + ".nex")
         
 if __name__ == '__main__':
 
@@ -126,18 +129,22 @@ if __name__ == '__main__':
     run_tiger(uralexdata,["-f","cldf"],outfile=os.path.join(uralexdir,URALEX_BASE))
     print("Done.")    
 
-    print("Running TIGER for swamp data...")
+    print("Running TIGER and creating NEXUSes for swamp data...")
     for i in glob.glob(os.path.join(swampdir,"*.csv")):
         run_tiger(i,["-f","harvest"])
+        harvest_to_nexus(i)
 
-    print("Running TIGER for dialect chain data...")
+    print("Running TIGER and creating NEXUSes for dialect chain data...")
     for i in glob.glob(os.path.join(dialectdir,"*.csv")):
         run_tiger(i,["-f","harvest"])
+        harvest_to_nexus(i)
 
-    print("Running TIGER for borrowing data...")
+    print("Running TIGER and creating NEXUSes for borrowing data...")
     for i in glob.glob(os.path.join(borrowingdir,"*.csv")):
         run_tiger(i,["-f","harvest"])
+        harvest_to_nexus(i)
 
-    print("Running TIGER for harvest data...")
+    print("Running TIGER and creating NEXUSes for harvest data...")
     for i in glob.glob(os.path.join(harvestdir,"*.csv")):
         run_tiger(i,["-f","harvest"])
+        harvest_to_nexus(i)
