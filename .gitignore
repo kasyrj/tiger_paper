@@ -1,3 +1,6 @@
 __pydata__/
 *.pyc
+materials/
+analyses/
+*.zip
 
