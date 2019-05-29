@@ -2,17 +2,30 @@
 import glob
 import os.path
 
+import scipy.stats
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
 def cognate_class_count_plot():
+    # Actual class counts
     cognate_counts = []
     with open("uralex_min_counts.csv","r") as fp:
         for line in fp:
             meaning, cognates = line.strip().split(",")
             cognate_counts.append(int(cognates))
-    plt.hist(cognate_counts,26)
+
+    # Best fitting distribution
+    nbinom_support = range(0,max(cognate_counts))
+    nbinom_probs = [scipy.stats.nbinom(8,0.45).pmf(n) for n in nbinom_support]
+
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+
+    ax1.hist(cognate_counts,19)
+    ax2.stem(nbinom_support,nbinom_probs, linefmt="C1-", markerfmt="C1o")
+    a, b = ax2.get_ylim()
+    ax2.set_ylim(0.0,b)
     plt.tight_layout()
     plt.savefig("cognate_dist.png")
 
