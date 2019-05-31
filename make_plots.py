@@ -45,6 +45,8 @@ def tiger_rate_plot():
         dfs.append(df)
     df = pd.concat(dfs)
 
+    data_names.sort(key=lambda x: df[x].mean())
+
     plt.figure(figsize=(12,6))
     sns.set(style="whitegrid", palette="muted")
     sns.set_context("paper",font_scale=2.0)
