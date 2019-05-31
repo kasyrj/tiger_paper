@@ -28,13 +28,14 @@ class DataFrame:
         languages.sort()
         features = list(self.data[languages[0]].keys())
         for f in features:
-            borrowable_values = []
+            all_values = set((self.data[L][f] for L in languages))
+            if len(all_values) == 1:
+                continue
             borrowers = []
             for l in languages:
                 if random.random() <= borrowing_rate:
                     borrowers.append(l)
             for l in borrowers:
                 current_value = self.data[l][f]
-                borrowable_values = [self.data[l][f] for L in languages if L!=l]
-                assert current_value not in borrowable_values
+                borrowable_values = [x for x in all_values if x != current_value]
                 self.data[l][f] = random.sample(borrowable_values,1)[0]
