@@ -110,8 +110,12 @@ if __name__ == '__main__':
     print("Done.")
 
     print("Generating harvest data with borrowing...")
-    borrowingdir = os.path.join(ANALYSIS_FOLDER,BORROWING_BASE)
-    run_generator_with_params(output_directory=borrowingdir, filebase=BORROWING_BASE, params=BORROWING_PARAMS)
+    for borrowing_rate in (0.05, 0.10, 0.15, 0.20):
+        BASE = BORROWING_BASE + ("_%02d" % int(100*borrowing_rate))
+        borrowingdir = os.path.join(ANALYSIS_FOLDER,BASE)
+        PARAMS = HARVEST_PARAMS + ["-B",str(borrowing_rate)]
+        print(borrowingdir, BASE, PARAMS)
+        run_generator_with_params(output_directory=borrowingdir, filebase=BASE, params=PARAMS)
     print("Done.")
 
     print("Generating harvest data...")
@@ -141,9 +145,12 @@ if __name__ == '__main__':
         harvest_to_nexus(i)
 
     print("Running TIGER and creating NEXUSes for borrowing data...")
-    for i in glob.glob(os.path.join(borrowingdir,"*.csv")):
-        run_tiger(i,["-f","harvest"])
-        harvest_to_nexus(i)
+    for borrowing_rate in (0.05, 0.10, 0.15, 0.20):
+        BASE = BORROWING_BASE + ("_%02d" % int(100*borrowing_rate))
+        borrowingdir = os.path.join(ANALYSIS_FOLDER,BASE)
+        for i in glob.glob(os.path.join(borrowingdir,"*.csv")):
+            run_tiger(i,["-f","harvest"])
+            harvest_to_nexus(i)
 
     print("Running TIGER and creating NEXUSes for harvest data...")
     for i in glob.glob(os.path.join(harvestdir,"*.csv")):
