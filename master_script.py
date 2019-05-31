@@ -22,13 +22,13 @@ TIGER_FOLDER     = "tiger-calculator-9a05a3f6013a6e0216500a9778f7fd828e54c40a"
 N_REPETITIONS    = 1
 URALEX_BASE      = "uralex"
 SWAMP_BASE       = 'swamp'
-SWAMP_PARAMS     = ["-m", "swamp", "-p", "min=1", "max=10"]
+SWAMP_PARAMS     = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "sampling=1000"]
 DIALECT_BASE     = 'dialect'
-DIALECT_PARAMS   = ["-m", "chain"]
+DIALECT_PARAMS   = ["-m", "chain", "-c", "2.0", "-B", "5.0"]
 BORROWING_BASE   = 'borrowing'
-BORROWING_PARAMS = ["-m", "dollo", "-b" "0.3"]
-HARVEST_BASE     = 'harvest'
-HARVEST_PARAMS = ["-m", "dollo"]
+BORROWING_PARAMS = ["-m", "dollo", "-c", "2.0", "-B", "0.3"]
+HARVEST_BASE     = 'pure_tree'
+HARVEST_PARAMS = ["-m", "dollo", "-c", "2.0"]
 
 def run(cmd):
     proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -63,6 +63,7 @@ def run_generator_with_params(output_directory,filebase,params):
         print("Failed to create folder %s." % output_directory)
         exit(1)
 
+    params = ["-l",  "26", "-f", "313"] + params
     for i in range(N_REPETITIONS):
         code,out,err = run([PYTHON_CMD, "generate.py"] + params)
         write_lines_to_file(out.decode("utf-8"), os.path.join(output_directory,filebase + "_" + str(i+1).zfill(len(str(N_REPETITIONS))) + ".csv"))
