@@ -25,9 +25,9 @@ class DataFrame:
         if borrowing_rate == 0.0:
             return
         languages = list(self.data.keys())
-        languages.sort()
         features = list(self.data[languages[0]].keys())
         for f in features:
+            random.shuffle(languages)
             all_values = set((self.data[L][f] for L in languages))
             if len(all_values) == 1:
                 continue
