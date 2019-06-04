@@ -57,8 +57,42 @@ def tiger_rate_plot():
     plt.tight_layout()
     plt.savefig("plots/tiger_rates_plot.png")
 
+def tiger_rates_semantic_categories():
+    rates = {}
+    categories = {}
+    categories["basic"] = []
+    categories["non-basic"] = []
+    dfs = []
+    with open("analyses/uralex/uralex_rates.txt", "r") as fp:
+        for line in fp:
+            meaning, rate = line.strip().split()
+            rates[meaning] = float(rate)
+    with open("uralex_supplement.tsv", "r") as fp:
+        fp.readline() # headers
+        for line in fp:
+            meaning, basic, category, rank = line.strip().split()
+            if basic == "yes":
+                categories["basic"].append(rates[meaning])
+            else:
+                categories["non-basic"].append(rates[meaning])
+            if category not in categories:
+                categories[category] = []
+            categories[category].append(rates[meaning])
+        df = pd.concat([pd.DataFrame({cat:rates}) for cat,rates in categories.items()])
+
+    plt.figure(figsize=(12,6))
+    sns.set(style="whitegrid", palette="muted")
+    sns.set_context("paper",font_scale=2.0)
+    ax = sns.boxplot(data=df, orient="h")
+    ax.set(xlabel='TIGER rates by category')
+    ax.set_xticks([0.50,0.75,1.00])
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.savefig("plots/tiger_rates_plot_2.png")
+
 if __name__ == "__main__":
     if not os.path.exists("plots"):
         os.mkdir("plots")
     cognate_class_count_plot()
     tiger_rate_plot()
+    tiger_rates_semantic_categories()
