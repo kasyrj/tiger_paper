@@ -52,8 +52,11 @@ def main():
         return
     data = simulator.generate_data()
 
-    # Do borrwing
-    data.borrow(options.borrowing)
+    # Do borrwing for tree models
+    # (not for chain!  Borrowing there happens internally, but is controlled by the same param,
+    # so doing it here too is double borrowing
+    if options.model == "dollo":
+        data.borrow(options.borrowing)
 
     # Output
     print(data.format_output())
