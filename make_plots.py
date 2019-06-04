@@ -40,7 +40,7 @@ def tiger_rate_plot():
         rates = []
         for rates_file in rates_files:
             with open(rates_file, "r") as fp:
-                rates.extend([float(x.strip()) for x in fp.readlines()])
+                rates.extend([float(x.strip().split()[-1]) for x in fp.readlines()])
         df = pd.DataFrame({name: rates})
         dfs.append(df)
     df = pd.concat(dfs)
