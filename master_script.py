@@ -16,9 +16,9 @@ PYTHON_CMD       = 'python3'
 URALEX_URL       = 'https://zenodo.org/record/1459402/files/lexibank/uralex-v1.0.zip?download=1'
 URALEX_ZIP       = "uralex-v1.0.zip"
 URALEX_FOLDER    = "lexibank-uralex-efe0a73"
-TIGER_URL        = 'https://github.com/kasyrj/tiger-calculator/archive/9a05a3f6013a6e0216500a9778f7fd828e54c40a.zip'
+TIGER_URL        = 'https://github.com/kasyrj/tiger-calculator/archive/c606c8fbb4f991c0db68704134f3ed20e58d019d.zip'
 TIGER_ZIP        = "tiger-calculator.zip"
-TIGER_FOLDER     = "tiger-calculator-9a05a3f6013a6e0216500a9778f7fd828e54c40a"
+TIGER_FOLDER     = "tiger-calculator-c606c8fbb4f991c0db68704134f3ed20e58d019d"
 N_REPETITIONS    = 1
 URALEX_BASE      = "uralex"
 SWAMP_BASE       = 'swamp'
@@ -131,17 +131,17 @@ if __name__ == '__main__':
         print("Failed to create folder %s." % uralexdir)
         exit(1)
     uralexdata = os.path.join(MATERIALS_FOLDER,URALEX_FOLDER,"cldf")
-    run_tiger(uralexdata,["-f","cldf"],outfile=os.path.join(uralexdir,URALEX_BASE))
+    run_tiger(uralexdata,["-f","cldf","-n"],outfile=os.path.join(uralexdir,URALEX_BASE))
     print("Done.")    
 
     print("Running TIGER and creating NEXUSes for swamp data...")
     for i in glob.glob(os.path.join(swampdir,"*.csv")):
-        run_tiger(i,["-f","harvest"])
+        run_tiger(i,["-f","harvest","-n"])
         harvest_to_nexus(i)
 
     print("Running TIGER and creating NEXUSes for dialect chain data...")
     for i in glob.glob(os.path.join(dialectdir,"*.csv")):
-        run_tiger(i,["-f","harvest"])
+        run_tiger(i,["-f","harvest","-n"])
         harvest_to_nexus(i)
 
     print("Running TIGER and creating NEXUSes for borrowing data...")
@@ -149,12 +149,12 @@ if __name__ == '__main__':
         BASE = BORROWING_BASE + ("_%02d" % int(100*borrowing_rate))
         borrowingdir = os.path.join(ANALYSIS_FOLDER,BASE)
         for i in glob.glob(os.path.join(borrowingdir,"*.csv")):
-            run_tiger(i,["-f","harvest"])
+            run_tiger(i,["-f","harvest","-n"])
             harvest_to_nexus(i)
 
     print("Running TIGER and creating NEXUSes for harvest data...")
     for i in glob.glob(os.path.join(harvestdir,"*.csv")):
-        run_tiger(i,["-f","harvest"])
+        run_tiger(i,["-f","harvest","-n"])
         harvest_to_nexus(i)
 
     print("Plotting results...")
