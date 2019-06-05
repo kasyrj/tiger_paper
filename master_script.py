@@ -78,10 +78,10 @@ def run_tiger(filename,params,outfile=None):
     else:
         write_lines_to_file(out.decode("utf-8"), outfile + "_rates.txt")
 
-def harvest_to_nexus(filename):
-    code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename])
-    write_lines_to_file(out.decode("utf-8"), filename + ".nex")
-        
+def harvest_to_nexus(directory, filename):
+    code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename]) 
+    write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"splitstree_input.nex"))
+       
 if __name__ == '__main__':
 
     download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
@@ -137,12 +137,12 @@ if __name__ == '__main__':
     print("Running TIGER and creating NEXUSes for swamp data...")
     for i in glob.glob(os.path.join(swampdir,"*.csv")):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(i)
+        harvest_to_nexus(swampdir, i)
 
     print("Running TIGER and creating NEXUSes for dialect chain data...")
     for i in glob.glob(os.path.join(dialectdir,"*.csv")):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(i)
+        harvest_to_nexus(dialectdir, i)
 
     print("Running TIGER and creating NEXUSes for borrowing data...")
     for borrowing_rate in (0.05, 0.10, 0.15, 0.20):
@@ -150,12 +150,12 @@ if __name__ == '__main__':
         borrowingdir = os.path.join(ANALYSIS_FOLDER,BASE)
         for i in glob.glob(os.path.join(borrowingdir,"*.csv")):
             run_tiger(i,["-f","harvest","-n"])
-            harvest_to_nexus(i)
+            harvest_to_nexus(borrowingdir, i)
 
     print("Running TIGER and creating NEXUSes for harvest data...")
     for i in glob.glob(os.path.join(harvestdir,"*.csv")):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(i)
+        harvest_to_nexus(harvestdir, i)
 
     print("Plotting results...")
     run([PYTHON_CMD, "make_plots.py"])
