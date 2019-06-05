@@ -3,4 +3,5 @@ __pydata__/
 materials/
 analyses/
 *.zip
-
+plots/
+uralex_*.csv
