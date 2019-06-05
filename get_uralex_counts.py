@@ -2,7 +2,7 @@
 import csv
 import os.path
 
-URALEX_PATH = "dataset/lexibank-uralex-efe0a73"
+URALEX_PATH = "materials/lexibank-uralex-efe0a73"
 
 # Read Uralex data
 with open(os.path.join(URALEX_PATH, "raw", "Data.tsv")) as fp:
