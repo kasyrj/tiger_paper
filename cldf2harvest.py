@@ -15,12 +15,21 @@ parser.add_argument(dest="in_file",
                     default=None,
                     type=str)
 
+parser.add_argument("-x",
+                    dest="excluded_taxa",
+                    help="Input file to analyze.",
+                    metavar='IN_FILE',
+                    default="",
+                    type=str)
+
 args = parser.parse_args()
 reader = formats.getReader("cldf")
 content = reader.getContents(args.in_file)
 taxa = content[0]
 chars = content[1]
 names = content[2]
+
+excluded_taxa = args.excluded_taxa.split(",")
 
 out = []
 current_line = ""
@@ -30,6 +39,8 @@ for n in names:
 out.append(current_line)
 for i in range(len(taxa)):
     current_taxon = str(taxa[i])
+    if current_taxon in excluded_taxa:
+        continue
     current_taxon = current_taxon.replace(" ","_")
     current_taxon = current_taxon.replace("õ","o")
     current_line = current_taxon
