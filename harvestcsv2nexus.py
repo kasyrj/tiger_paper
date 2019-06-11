@@ -15,11 +15,14 @@ class Feature():
 
     def asBinary(self):
         string = ""
-        for state in self._states:
-            if state == self._state:
-                string += "1"
-            else:
-                string += "0"
+        if self._state == "?":
+            string = "?" * len(self._states)
+        else:
+            for state in self._states:                
+                if state == self._state:
+                    string += "1"
+                else:
+                    string += "0"
         return string
 
     def asMultistate(self):
@@ -58,6 +61,8 @@ class DataMatrix():
                     possible_states.add(self._csv[i][j])
                     if self._csv[i][0] == taxon:
                         current_state = self._csv[i][j]
+        if "?" in possible_states:
+            possible_states.remove("?")
         return Feature(current_state,sorted(possible_states,key=int))
 
     def getTaxonFeature(self,taxon,feature):

@@ -16,9 +16,9 @@ PYTHON_CMD       = 'python3'
 URALEX_URL       = 'https://zenodo.org/record/1459402/files/lexibank/uralex-v1.0.zip?download=1'
 URALEX_ZIP       = "uralex-v1.0.zip"
 URALEX_FOLDER    = "lexibank-uralex-efe0a73"
-TIGER_URL        = 'https://github.com/kasyrj/tiger-calculator/archive/c606c8fbb4f991c0db68704134f3ed20e58d019d.zip'
+TIGER_URL        = 'https://github.com/kasyrj/tiger-calculator/archive/aff844b1fa3bbdd003533f57911ff0b09f258c82.zip'
 TIGER_ZIP        = "tiger-calculator.zip"
-TIGER_FOLDER     = "tiger-calculator-c606c8fbb4f991c0db68704134f3ed20e58d019d"
+TIGER_FOLDER     = "tiger-calculator-aff844b1fa3bbdd003533f57911ff0b09f258c82"
 N_REPETITIONS    = 1
 URALEX_BASE      = "uralex"
 SWAMP_BASE       = 'swamp'
@@ -81,7 +81,11 @@ def run_tiger(filename,params,outfile=None):
 def harvest_to_nexus(directory, filename):
     code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename]) 
     write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"splitstree_input.nex"))
-       
+
+def cldf_to_harvest(directory, cldf_path):
+    code,out,err = run([PYTHON_CMD, "cldf2harvest.py", cldf_path]) 
+    write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"harvest.csv"))
+    
 if __name__ == '__main__':
 
     download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
@@ -123,7 +127,7 @@ if __name__ == '__main__':
     run_generator_with_params(output_directory=harvestdir, filebase=HARVEST_BASE, params=HARVEST_PARAMS)
     print("Done.")
 
-    print("Running TIGER for UraLex dataset...")
+    print("Running TIGER and creating NEXUSes for UraLex dataset...")
     uralexdir = os.path.join(ANALYSIS_FOLDER,URALEX_BASE)
     try:
         os.mkdir(uralexdir)
@@ -131,7 +135,10 @@ if __name__ == '__main__':
         print("Failed to create folder %s." % uralexdir)
         exit(1)
     uralexdata = os.path.join(MATERIALS_FOLDER,URALEX_FOLDER,"cldf")
-    run_tiger(uralexdata,["-f","cldf","-n"],outfile=os.path.join(uralexdir,URALEX_BASE))
+    run_tiger(uralexdata,["-f","cldf","-n"],outfile=os.path.join(uralexdir,URALEX_BASE))    
+    cldf_to_harvest(uralexdir, uralexdata)
+    harvest_to_nexus(uralexdir, os.path.join(uralexdir, "harvest.csv"))
+    
     print("Done.")    
 
     print("Running TIGER and creating NEXUSes for swamp data...")
