@@ -1,0 +1,10 @@
+begin SplitsTree;
+
+load file=splitstree_input.nex
+update
+export file=splitstree_network.nex
+exportgraphics file=splitstree_network.svg size=500 format=svg
+quit
+
+end;
+

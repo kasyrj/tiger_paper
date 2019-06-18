@@ -10,25 +10,26 @@ import os
 import glob
 import subprocess
 
-MATERIALS_FOLDER = 'materials'
-ANALYSIS_FOLDER  = 'analyses'
-PYTHON_CMD       = 'python3'
-URALEX_URL       = 'https://zenodo.org/record/1459402/files/lexibank/uralex-v1.0.zip?download=1'
-URALEX_ZIP       = "uralex-v1.0.zip"
-URALEX_FOLDER    = "lexibank-uralex-efe0a73"
-TIGER_URL        = 'https://github.com/kasyrj/tiger-calculator/archive/c606c8fbb4f991c0db68704134f3ed20e58d019d.zip'
-TIGER_ZIP        = "tiger-calculator.zip"
-TIGER_FOLDER     = "tiger-calculator-c606c8fbb4f991c0db68704134f3ed20e58d019d"
-N_REPETITIONS    = 1
-URALEX_BASE      = "uralex"
-SWAMP_BASE       = 'swamp'
-SWAMP_PARAMS     = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "sampling=1000"]
-DIALECT_BASE     = 'dialect'
-DIALECT_PARAMS   = ["-m", "chain", "-c", "2.0", "-B", "5.0"]
-BORROWING_BASE   = 'borrowing'
-BORROWING_PARAMS = ["-m", "dollo", "-c", "2.0", "-B", "0.3"]
-HARVEST_BASE     = 'pure_tree'
-HARVEST_PARAMS = ["-m", "dollo", "-c", "2.0"]
+MATERIALS_FOLDER    = 'materials'
+ANALYSIS_FOLDER     = 'analyses'
+PYTHON_CMD          = 'python3'
+URALEX_URL          = 'https://zenodo.org/record/1459402/files/lexibank/uralex-v1.0.zip?download=1'
+URALEX_ZIP          = "uralex-v1.0.zip"
+URALEX_FOLDER       = "lexibank-uralex-efe0a73"
+TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/91b4509615bb91441f51eb4f8f1974dca01814dc.zip'
+TIGER_ZIP           = "tiger-calculator.zip"
+TIGER_FOLDER        = "tiger-calculator-91b4509615bb91441f51eb4f8f1974dca01814dc"
+N_REPETITIONS       = 1
+URALEX_BASE         = "uralex"
+SWAMP_BASE          = 'swamp'
+SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "sampling=2000"]
+DIALECT_BASE        = 'dialect'
+DIALECT_PARAMS      = ["-m", "chain", "-c", "2.0", "-B", "5.0"]
+BORROWING_BASE      = 'borrowing'
+BORROWING_PARAMS    = ["-m", "dollo", "-c", "2.0", "-B", "0.3"]
+HARVEST_BASE        = 'pure_tree'
+HARVEST_PARAMS      = ["-m", "dollo", "-c", "2.0"]
+URALEX_TIGER_PARAMS = ["-f","cldf","-n", "-x", "Proto-Uralic*", "-i", "?"]
 
 def run(cmd):
     proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -78,10 +79,14 @@ def run_tiger(filename,params,outfile=None):
     else:
         write_lines_to_file(out.decode("utf-8"), outfile + "_rates.txt")
 
-def harvest_to_nexus(filename):
-    code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename])
-    write_lines_to_file(out.decode("utf-8"), filename + ".nex")
-        
+def harvest_to_nexus(directory, filename):
+    code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename]) 
+    write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"splitstree_input.nex"))
+
+def cldf_to_harvest(directory, cldf_path):
+    code,out,err = run([PYTHON_CMD, "cldf2harvest.py", "-x", "Proto-Uralic*", cldf_path]) 
+    write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"harvest.csv"))
+    
 if __name__ == '__main__':
 
     download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
@@ -123,7 +128,7 @@ if __name__ == '__main__':
     run_generator_with_params(output_directory=harvestdir, filebase=HARVEST_BASE, params=HARVEST_PARAMS)
     print("Done.")
 
-    print("Running TIGER for UraLex dataset...")
+    print("Running TIGER and creating NEXUSes for UraLex dataset...")
     uralexdir = os.path.join(ANALYSIS_FOLDER,URALEX_BASE)
     try:
         os.mkdir(uralexdir)
@@ -131,18 +136,21 @@ if __name__ == '__main__':
         print("Failed to create folder %s." % uralexdir)
         exit(1)
     uralexdata = os.path.join(MATERIALS_FOLDER,URALEX_FOLDER,"cldf")
-    run_tiger(uralexdata,["-f","cldf","-n"],outfile=os.path.join(uralexdir,URALEX_BASE))
+    run_tiger(uralexdata,URALEX_TIGER_PARAMS,outfile=os.path.join(uralexdir,URALEX_BASE))
+    cldf_to_harvest(uralexdir, uralexdata)
+    harvest_to_nexus(uralexdir, os.path.join(uralexdir, "harvest.csv"))
+    
     print("Done.")    
 
     print("Running TIGER and creating NEXUSes for swamp data...")
     for i in glob.glob(os.path.join(swampdir,"*.csv")):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(i)
+        harvest_to_nexus(swampdir, i)
 
     print("Running TIGER and creating NEXUSes for dialect chain data...")
     for i in glob.glob(os.path.join(dialectdir,"*.csv")):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(i)
+        harvest_to_nexus(dialectdir, i)
 
     print("Running TIGER and creating NEXUSes for borrowing data...")
     for borrowing_rate in (0.05, 0.10, 0.15, 0.20):
@@ -150,12 +158,12 @@ if __name__ == '__main__':
         borrowingdir = os.path.join(ANALYSIS_FOLDER,BASE)
         for i in glob.glob(os.path.join(borrowingdir,"*.csv")):
             run_tiger(i,["-f","harvest","-n"])
-            harvest_to_nexus(i)
+            harvest_to_nexus(borrowingdir, i)
 
     print("Running TIGER and creating NEXUSes for harvest data...")
     for i in glob.glob(os.path.join(harvestdir,"*.csv")):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(i)
+        harvest_to_nexus(harvestdir, i)
 
     print("Plotting results...")
     run([PYTHON_CMD, "make_plots.py"])
