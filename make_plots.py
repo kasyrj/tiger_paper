@@ -29,6 +29,16 @@ def cognate_class_count_plot():
     plt.tight_layout()
     plt.savefig("plots/cognate_dist.png")
 
+def tiger_rate_dist_plot():
+    rates = []
+    with open("analyses/uralex/uralex_rates.txt","r") as fp:
+        for line in fp:
+            rates.extend([float(line.strip().split()[-1])])
+    fig, ax = plt.subplots()
+    ax.hist(rates,19)
+    plt.tight_layout()
+    plt.savefig("plots/uralex_rates_dist.png")
+
 def tiger_rate_plot():
     dfs = []
     data_models = glob.glob("analyses/*")
@@ -96,3 +106,4 @@ if __name__ == "__main__":
     cognate_class_count_plot()
     tiger_rate_plot()
     tiger_rates_semantic_categories()
+    tiger_rate_dist_plot()
