@@ -1,21 +1,26 @@
 #!/usr/bin/python3
 import argparse
-import phylogemetric
+import sys
+try:
+    import phylogemetric
+except:
+    print("Package phylogemetric is required to run this program.", file=sys.stderr)
+    exit(1)
 
 def harvest_to_matrix(csv):
     matrix = {}
     cleaned_lines = []
     for line in csv:
-        cleaned_lines.append(line.strip().rstrip().split(","))
+        cleaned_lines.append(line.strip().rstrip())
     for i in range(len(cleaned_lines)):
         if i == 0:
             continue
-        fields = line.split(",")
+        fields = cleaned_lines[i].split(",")
         matrix[fields[0]] = fields[1:]
     return matrix
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=PARSER_DESC)
+    parser = argparse.ArgumentParser(description="Calculate delta scores and Q-residuals for a harvest-style CSV")
 
     parser.add_argument(dest="infile",
                         help="Input file",
@@ -34,7 +39,13 @@ if __name__ == "__main__":
         print("Could not find file",in_file)
         quit()
 
-    matrix = harvest_csv_to_matrix(infile)
-    delta_score = phylogemetric.DeltaScoreMetric(matrix)
-    q_residual  = phylogemetric.QResidualMetric(matrix)
+    matrix = harvest_to_matrix(infile)
+    delta_score = phylogemetric.DeltaScoreMetric(matrix).score()
+    q_residual  = phylogemetric.QResidualMetric(matrix).score()
+    print("taxon\tdelta-score\tq-residual")
+    for taxon in sorted(delta_score.keys()):
+        print("%s\t%f\t%f" % (taxon, delta_score[taxon],q_residual[taxon]))
+        #    print(delta_score)
+        #   print(q_residual)
+
     
