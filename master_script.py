@@ -72,6 +72,7 @@ def run_generator_with_params(output_directory,filebase,params):
         write_lines_to_file(out.decode("utf-8"), os.path.join(output_directory,filebase + "_" + str(i+1).zfill(len(str(N_REPETITIONS))) + ".csv"))
 
 def run_tiger(filename,params,outfile=None):
+    print("Calculating TIGER rates for %s" % filename)
     params = params + [filename]
     tigercmd = os.path.join(MATERIALS_FOLDER,TIGER_FOLDER, "tiger-calculator.py")
     code,out,err = run([PYTHON_CMD, tigercmd] + params)
@@ -91,7 +92,14 @@ def cldf_to_harvest(directory, cldf_path):
     code,out,err = run([PYTHON_CMD, "cldf2harvest.py", "-x", "Proto-Uralic*", cldf_path]) 
     print(err.decode("utf-8"), file=sys.stderr)
     write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"uralex.csv"))
-    
+
+def calculate_delta_and_q(filename): 
+    print("Calculating delta scores and Q-residuals for %s" % filename)
+    params = [filename]
+    code,out,err = run([PYTHON_CMD, "calculate_delta_and_q.py"] + params)
+    print(err.decode("utf-8"), file=sys.stderr)
+    write_lines_to_file(out.decode("utf-8"), filename + "_delta_qresidual.txt")
+   
 if __name__ == '__main__':
 
     download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
@@ -133,7 +141,7 @@ if __name__ == '__main__':
     run_generator_with_params(output_directory=harvestdir, filebase=HARVEST_BASE, params=HARVEST_PARAMS)
     print("Done.")
 
-    print("Running TIGER and creating NEXUSes for UraLex dataset...")
+    print("Processing UraLex data...")
     uralexdir = os.path.join(ANALYSIS_FOLDER,URALEX_BASE)
     try:
         os.mkdir(uralexdir)
@@ -143,23 +151,26 @@ if __name__ == '__main__':
     uralexdata = os.path.join(MATERIALS_FOLDER,URALEX_FOLDER,"cldf")
     run_tiger(uralexdata,URALEX_TIGER_PARAMS,outfile=os.path.join(uralexdir,URALEX_BASE))
     cldf_to_harvest(uralexdir, uralexdata)
+    calculate_delta_and_q(os.path.join(uralexdir,"uralex.csv"))
     harvest_to_nexus(uralexdir, os.path.join(uralexdir, "uralex.csv"))
     
     print("Done.")    
 
-    print("Running TIGER and creating NEXUSes for swamp data...")
+    print("Processing swamp data...")
     for i in sorted(glob.glob(os.path.join(swampdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
         if os.path.isfile(os.path.join(swampdir,"splitstree_input.nex")) == False: # only create for first file
             harvest_to_nexus(swampdir, i)
+        calculate_delta_and_q(i)
 
-    print("Running TIGER and creating NEXUSes for dialect chain data...")
+    print("Processing dialect chain data...")
     for i in sorted(glob.glob(os.path.join(dialectdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
         if os.path.isfile(os.path.join(dialectdir,"splitstree_input.nex")) == False: # only create for first file
             harvest_to_nexus(dialectdir, i)
+        calculate_delta_and_q(i)
 
-    print("Running TIGER and creating NEXUSes for borrowing data...")
+    print("Processing borrowing data...")
     for borrowing_rate in (0.05, 0.10, 0.15, 0.20):
         BASE = BORROWING_BASE + ("_%02d" % int(100*borrowing_rate))
         borrowingdir = os.path.join(ANALYSIS_FOLDER,BASE)
@@ -167,12 +178,14 @@ if __name__ == '__main__':
             run_tiger(i,["-f","harvest","-n"])
             if os.path.isfile(os.path.join(borrowingdir,"splitstree_input.nex")) == False: # only create for first file
                 harvest_to_nexus(borrowingdir, i)
+            calculate_delta_and_q(i)
 
-    print("Running TIGER and creating NEXUSes for harvest data...")
+    print("Processing harvest data...")
     for i in sorted(glob.glob(os.path.join(harvestdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
         if os.path.isfile(os.path.join(harvestdir,"splitstree_input.nex")) == False: # only create for first file
             harvest_to_nexus(harvestdir, i)
+        calculate_delta_and_q(i)
 
     print("Plotting results...")
     run([PYTHON_CMD, "make_plots.py"])
