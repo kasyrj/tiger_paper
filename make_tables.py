@@ -87,6 +87,10 @@ def make_mean_rates_table():
         mean_delta = statistics.mean(results[c]["delta"])
         mean_qresi = statistics.mean(results[c]["qresidual"])
         table.append("%s\t%f\t%f\t%f" % (c,mean_tiger,mean_delta,mean_qresi))
+    mean_tiger = statistics.mean(results["uralex"]["tiger"])
+    mean_delta = statistics.mean(results["uralex"]["delta"])
+    mean_qresi = statistics.mean(results["uralex"]["qresidual"])
+    table.append("%s\t%f\t%f\t%f" % ("uralex",mean_tiger,mean_delta,mean_qresi))
     return table
     
 if __name__ == '__main__':
