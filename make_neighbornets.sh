@@ -8,6 +8,7 @@ do
     cd $i
     echo "Processing $i"
     $SPLITSTREE_CMD -g -c $BASE_PATH/splitstree_cmds.txt
+    inkscape --export-png=splitstree_network.png --export-dpi 150 splitstree_network.svg    
     cd $BASE_PATH
 done
 
