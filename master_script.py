@@ -20,10 +20,10 @@ URALEX_FOLDER       = "lexibank-uralex-efe0a73"
 TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/91b4509615bb91441f51eb4f8f1974dca01814dc.zip'
 TIGER_ZIP           = "tiger-calculator.zip"
 TIGER_FOLDER        = "tiger-calculator-91b4509615bb91441f51eb4f8f1974dca01814dc"
-N_REPETITIONS       = 2
+N_REPETITIONS       = 10
 URALEX_BASE         = "uralex"
 SWAMP_BASE          = 'swamp'
-SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "sampling=1000000"]
+SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "samples=100000"]
 DIALECT_BASE        = 'dialect'
 DIALECT_PARAMS      = ["-m", "chain", "-c", "2.0", "-B", "5.0"]
 BORROWING_BASE      = 'borrowing'
@@ -99,7 +99,7 @@ def calculate_delta_and_q(filename):
     code,out,err = run([PYTHON_CMD, "calculate_delta_and_q.py"] + params)
     print(err.decode("utf-8"), file=sys.stderr)
     write_lines_to_file(out.decode("utf-8"), filename + "_delta_qresidual.txt")
-   
+
 if __name__ == '__main__':
 
     download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
@@ -187,5 +187,8 @@ if __name__ == '__main__':
             harvest_to_nexus(harvestdir, i)
         calculate_delta_and_q(i)
 
+    print("Tabulating agreements with simulations...")
+    run([PYTHON_CMD, "make_tables.py"])
+        
     print("Plotting results...")
     run([PYTHON_CMD, "make_plots.py"])
