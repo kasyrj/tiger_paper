@@ -6,6 +6,7 @@
 
 import urllib.request
 import zipfile
+import sys
 import os
 import glob
 import subprocess
@@ -19,10 +20,10 @@ URALEX_FOLDER       = "lexibank-uralex-efe0a73"
 TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/91b4509615bb91441f51eb4f8f1974dca01814dc.zip'
 TIGER_ZIP           = "tiger-calculator.zip"
 TIGER_FOLDER        = "tiger-calculator-91b4509615bb91441f51eb4f8f1974dca01814dc"
-N_REPETITIONS       = 1
+N_REPETITIONS       = 2
 URALEX_BASE         = "uralex"
 SWAMP_BASE          = 'swamp'
-SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "sampling=2000"]
+SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "sampling=1000000"]
 DIALECT_BASE        = 'dialect'
 DIALECT_PARAMS      = ["-m", "chain", "-c", "2.0", "-B", "5.0"]
 BORROWING_BASE      = 'borrowing'
@@ -67,25 +68,29 @@ def run_generator_with_params(output_directory,filebase,params):
     params = ["-l",  "26", "-f", "313"] + params
     for i in range(N_REPETITIONS):
         code,out,err = run([PYTHON_CMD, "generate.py"] + params)
+        print(err.decode("utf-8"), file=sys.stderr)
         write_lines_to_file(out.decode("utf-8"), os.path.join(output_directory,filebase + "_" + str(i+1).zfill(len(str(N_REPETITIONS))) + ".csv"))
 
 def run_tiger(filename,params,outfile=None):
     params = params + [filename]
     tigercmd = os.path.join(MATERIALS_FOLDER,TIGER_FOLDER, "tiger-calculator.py")
     code,out,err = run([PYTHON_CMD, tigercmd] + params)
-    print(err.decode("utf-8"))
+    print(err.decode("utf-8"), file=sys.stderr)
     if outfile == None:
         write_lines_to_file(out.decode("utf-8"), filename + "_rates.txt")
     else:
         write_lines_to_file(out.decode("utf-8"), outfile + "_rates.txt")
 
 def harvest_to_nexus(directory, filename):
-    code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename]) 
+    print("Creating NEXUS for %s..." % filename)
+    code,out,err = run([PYTHON_CMD, "harvestcsv2nexus.py", filename])
+    print(err.decode("utf-8"), file=sys.stderr)
     write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"splitstree_input.nex"))
 
 def cldf_to_harvest(directory, cldf_path):
     code,out,err = run([PYTHON_CMD, "cldf2harvest.py", "-x", "Proto-Uralic*", cldf_path]) 
-    write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"harvest.csv"))
+    print(err.decode("utf-8"), file=sys.stderr)
+    write_lines_to_file(out.decode("utf-8"), os.path.join(directory,"uralex.csv"))
     
 if __name__ == '__main__':
 
@@ -138,32 +143,36 @@ if __name__ == '__main__':
     uralexdata = os.path.join(MATERIALS_FOLDER,URALEX_FOLDER,"cldf")
     run_tiger(uralexdata,URALEX_TIGER_PARAMS,outfile=os.path.join(uralexdir,URALEX_BASE))
     cldf_to_harvest(uralexdir, uralexdata)
-    harvest_to_nexus(uralexdir, os.path.join(uralexdir, "harvest.csv"))
+    harvest_to_nexus(uralexdir, os.path.join(uralexdir, "uralex.csv"))
     
     print("Done.")    
 
     print("Running TIGER and creating NEXUSes for swamp data...")
-    for i in glob.glob(os.path.join(swampdir,"*.csv")):
+    for i in sorted(glob.glob(os.path.join(swampdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(swampdir, i)
+        if os.path.isfile(os.path.join(swampdir,"splitstree_input.nex")) == False: # only create for first file
+            harvest_to_nexus(swampdir, i)
 
     print("Running TIGER and creating NEXUSes for dialect chain data...")
-    for i in glob.glob(os.path.join(dialectdir,"*.csv")):
+    for i in sorted(glob.glob(os.path.join(dialectdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(dialectdir, i)
+        if os.path.isfile(os.path.join(dialectdir,"splitstree_input.nex")) == False: # only create for first file
+            harvest_to_nexus(dialectdir, i)
 
     print("Running TIGER and creating NEXUSes for borrowing data...")
     for borrowing_rate in (0.05, 0.10, 0.15, 0.20):
         BASE = BORROWING_BASE + ("_%02d" % int(100*borrowing_rate))
         borrowingdir = os.path.join(ANALYSIS_FOLDER,BASE)
-        for i in glob.glob(os.path.join(borrowingdir,"*.csv")):
+        for i in sorted(glob.glob(os.path.join(borrowingdir,"*.csv"))):
             run_tiger(i,["-f","harvest","-n"])
-            harvest_to_nexus(borrowingdir, i)
+            if os.path.isfile(os.path.join(borrowingdir,"splitstree_input.nex")) == False: # only create for first file
+                harvest_to_nexus(borrowingdir, i)
 
     print("Running TIGER and creating NEXUSes for harvest data...")
-    for i in glob.glob(os.path.join(harvestdir,"*.csv")):
+    for i in sorted(glob.glob(os.path.join(harvestdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
-        harvest_to_nexus(harvestdir, i)
+        if os.path.isfile(os.path.join(harvestdir,"splitstree_input.nex")) == False: # only create for first file
+            harvest_to_nexus(harvestdir, i)
 
     print("Plotting results...")
     run([PYTHON_CMD, "make_plots.py"])
