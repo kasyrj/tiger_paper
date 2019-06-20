@@ -20,7 +20,7 @@ URALEX_FOLDER       = "lexibank-uralex-efe0a73"
 TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/91b4509615bb91441f51eb4f8f1974dca01814dc.zip'
 TIGER_ZIP           = "tiger-calculator.zip"
 TIGER_FOLDER        = "tiger-calculator-91b4509615bb91441f51eb4f8f1974dca01814dc"
-N_REPETITIONS       = 10
+N_REPETITIONS       = 100
 URALEX_BASE         = "uralex"
 SWAMP_BASE          = 'swamp'
 SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "samples=100000"]
