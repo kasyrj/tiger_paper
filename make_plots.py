@@ -37,6 +37,8 @@ def tiger_rate_dist_plot():
             rates.extend([float(line.strip().split()[-1])])
     fig, ax = plt.subplots()
     ax.hist(rates,19)
+    ax.set_xlabel("TIGER rate")
+    ax.set_ylabel("Number of meanings")
     plt.tight_layout()
     plt.savefig("plots/uralex_rates_dist.png")
 
