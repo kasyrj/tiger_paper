@@ -21,7 +21,7 @@ class ChainSimulator():
 
         langs = random.sample(dummy_isos, self.n_langs)
         self.langs = langs
-        dist = scipy.stats.nbinom(8, 0.45)
+        dist = scipy.stats.nbinom(9, 0.49)
 
         # Generate cognate class counts
         feature_sizes = dist.rvs(self.n_features)

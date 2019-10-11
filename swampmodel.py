@@ -30,9 +30,9 @@ class MarshGenerator():
         if model["type"] == "poisson" and "lambda" not in model:
             model["lambda"] = ntaxa / 2.0
         if model["type"] == "negbinom" and "n" not in model:
-            model["n"] = 8
+            model["n"] = 9
         if model["type"] == "negbinom" and "p" not in model:
-            model["p"] = 0.45
+            model["p"] = 0.49
         if "min" not in model:
             model["min"] = 1
         if "max" not in model:
@@ -44,7 +44,7 @@ class MarshGenerator():
         if "alpha" in model:
             model["alpha"] = float(model["alpha"])
         else:
-            model["alpha"] = 0.9
+            model["alpha"] = 0.8
         self.assertModel(model)
         self._model = model
 

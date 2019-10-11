@@ -23,7 +23,7 @@ TIGER_FOLDER        = "tiger-calculator-91b4509615bb91441f51eb4f8f1974dca01814dc
 N_REPETITIONS       = 100
 URALEX_BASE         = "uralex"
 SWAMP_BASE          = 'swamp'
-SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.9", "samples=100000"]
+SWAMP_PARAMS        = ["-m", "swamp", "-p", "type=negbinom", "alpha=0.8", "samples=100000"]
 DIALECT_BASE        = 'dialect'
 DIALECT_PARAMS      = ["-m", "chain", "-c", "2.0", "-B", "5.0"]
 BORROWING_BASE      = 'borrowing'

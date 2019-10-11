@@ -17,7 +17,7 @@ def cognate_class_count_plot():
 
     # Best fitting distribution
     nbinom_support = range(0,max(cognate_counts))
-    nbinom_probs = [scipy.stats.nbinom(8,0.45).pmf(n) for n in nbinom_support]
+    nbinom_probs = [scipy.stats.nbinom(9,0.49).pmf(n) for n in nbinom_support]
 
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()

@@ -36,7 +36,7 @@ def main():
     if options.model == "dollo":
         simulator = DolloSimulator(options.languages, options.features, options.cognate_birthrate)
     elif options.model == "chain":
-        simulator = ChainSimulator(options.languages, options.features, 0.9)
+        simulator = ChainSimulator(options.languages, options.features, 0.8)
     elif options.model == "swamp":
         # Further process swamp-specific options
         model = { "type": "simple" }
