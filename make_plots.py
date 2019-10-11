@@ -6,6 +6,7 @@ import scipy.stats
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy
 
 def cognate_class_count_plot():
     # Actual class counts
@@ -42,6 +43,8 @@ def tiger_rate_dist_plot():
             rates.extend([float(line.strip().split()[-1])])
     fig, ax = plt.subplots()
     ax.hist(rates,19)
+    ax.set_xlabel("TIGER rate")
+    ax.set_ylabel("Number of meanings")
     plt.tight_layout()
     plt.savefig("plots/uralex_rates_dist.png")
 
@@ -106,6 +109,71 @@ def tiger_rates_semantic_categories():
     plt.tight_layout()
     plt.savefig("plots/tiger_rates_plot_2.png")
 
+def metric_comparison_plot():
+    x_axis = ["pure_tree","borrowing_05","borrowing_10","borrowing_15","borrowing_20","dialect","swamp","uralex"]
+    y_axis = []
+    analyses = glob.glob("analyses/*")
+    tiger_rates = {}
+    qresiduals = {}
+    delta_scores = {}
+    
+    for a in analyses:
+        current_analysis = os.path.split(a)[-1]    
+        tiger_files = glob.glob(os.path.join(a, "*rates.txt"))
+        delta_q_files = glob.glob(os.path.join(a,"*delta_qresidual.txt"))
+
+        tiger_rates[current_analysis] = []
+        qresiduals[current_analysis] = []
+        delta_scores[current_analysis] = []
+        
+        for f in tiger_files:
+            with open(f, "r") as fp:
+                tiger_rates[current_analysis].extend([float(x.strip().split()[-1]) for x in fp.readlines()])
+
+        for f in delta_q_files:
+            with open(f, "r") as fp:
+                lines = fp.readlines()
+                for l in lines[1:]:
+                    delta_scores[current_analysis].extend([float(l.strip().split()[1])])
+                    qresiduals[current_analysis].extend([float(l.strip().split()[2])])
+
+
+    sns.set(style="whitegrid", palette="muted")
+    sns.set_context("paper",font_scale=1.0)
+    
+    y_axis = []
+    for k in x_axis:
+        y_axis.append(numpy.mean(tiger_rates[k]))
+
+    plt.subplot(2,2,1)    
+    plt.xticks(rotation=90)
+    plt.plot(x_axis[:-1], y_axis[:-1],"bo--")
+    plt.plot(x_axis[-1], y_axis[-1],"bx")
+    plt.title("TIGER rate")
+
+    y_axis = []
+    for k in x_axis:
+        y_axis.append(numpy.mean(delta_scores[k]))
+
+    plt.subplot(2,2,2)    
+    plt.xticks(rotation=90)
+    plt.plot(x_axis[:-1], y_axis[:-1],"bo--")
+    plt.plot(x_axis[-1], y_axis[-1],"bx")
+    plt.title("delta score")
+
+    y_axis = []
+    for k in x_axis:
+        y_axis.append(numpy.mean(qresiduals[k]))
+
+    plt.subplot(2,2,3)    
+    plt.xticks(rotation=90)
+    plt.plot(x_axis[:-1], y_axis[:-1],"bo--")
+    plt.plot(x_axis[-1], y_axis[-1],"bx")
+    plt.title("Q-residual")
+    
+    plt.tight_layout()
+    plt.savefig("plots/metric_comparison_plot.png", dpi=300)
+    
 if __name__ == "__main__":
     if not os.path.exists("plots"):
         os.mkdir("plots")
@@ -113,3 +181,5 @@ if __name__ == "__main__":
     tiger_rate_plot()
     tiger_rates_semantic_categories()
     tiger_rate_dist_plot()
+    metric_comparison_plot()
+    
