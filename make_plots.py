@@ -16,16 +16,22 @@ def cognate_class_count_plot():
             cognate_counts.append(int(cognates))
 
     # Best fitting distribution
-    nbinom_support = range(0,max(cognate_counts))
+    nbinom_support = range(0,max(cognate_counts)+2)
     nbinom_probs = [scipy.stats.nbinom(9,0.49).pmf(n) for n in nbinom_support]
 
+    plt.figure(figsize=(12,6))
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
 
-    ax1.hist(cognate_counts,19)
+    ax1.hist(cognate_counts,bins=range(1,max(cognate_counts)+2), align="left")
+    ax1.set_xticks([5,10,15,20])
+    ax1.set_xlim(0,max(cognate_counts)+1.5)
+    ax1.set_xlabel("Cognate classes", fontsize=12)
+    ax1.set_ylabel("Meanings in UraLex", fontsize=12)
     ax2.stem(nbinom_support,nbinom_probs, linefmt="C1-", markerfmt="C1o")
     a, b = ax2.get_ylim()
     ax2.set_ylim(0.0,b)
+    ax2.set_ylabel("Negative binomial probability", fontsize=12)
     plt.tight_layout()
     plt.savefig("plots/cognate_dist.png")
 
