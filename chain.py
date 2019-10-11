@@ -42,14 +42,21 @@ class ChainSimulator():
             multinomial_counts = scipy.stats.multinomial.rvs(n=self.n_langs - classes,p=multinomial_probs)
             multinomial_counts = [c+1 for c in multinomial_counts]
             assert sum(multinomial_counts) == self.n_langs
-            # Do conglomeeraive thing
+            # Start off by structuring cognate classes as uninterrupted chains of consecutive languages,
+            # in random order
             segments = [[j]*count for j,count in enumerate(multinomial_counts)]
+            # Now iteratively "merge" classes by either concatenating a random pair or inserting one
+            # class into another at a random index class.  This second operation is consistent with the
+            # structure of one class "evolving over the top of" some now unobserved portion of a larger
+            # other class.
             while len(segments) > 1:
                 random.shuffle(segments)
                 a, b = segments.pop(), segments.pop()
                 if random.random() < 0.75 or len(a) == len(b) == 1:
+                    # Concatenate
                     c = a + b
                 else:
+                    # Insert
                     longest = a if len(a) > len(b) else b
                     shortest = b if len(a) > len(b) else a
                     insertion_index = random.randint(1,len(longest)-1)
