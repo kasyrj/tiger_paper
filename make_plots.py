@@ -10,7 +10,7 @@ import seaborn as sns
 def cognate_class_count_plot():
     # Actual class counts
     cognate_counts = []
-    with open("uralex_min_counts.csv","r") as fp:
+    with open("uralex_counts.csv","r") as fp:
         for line in fp:
             meaning, cognates = line.strip().split(",")
             cognate_counts.append(int(cognates))
