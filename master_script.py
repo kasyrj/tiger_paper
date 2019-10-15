@@ -17,7 +17,7 @@ PYTHON_CMD          = 'python3'
 URALEX_URL          = 'https://zenodo.org/record/1459402/files/lexibank/uralex-v1.0.zip?download=1'
 URALEX_ZIP          = "uralex-v1.0.zip"
 URALEX_FOLDER       = "lexibank-uralex-efe0a73"
-TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/91b4509615bb91441f51eb4f8f1974dca01814dc.zip'
+TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/f0152241a38bbba49bae28dceaf8d1b848bfbb30.zip"
 TIGER_ZIP           = "tiger-calculator.zip"
 TIGER_FOLDER        = "tiger-calculator-91b4509615bb91441f51eb4f8f1974dca01814dc"
 N_REPETITIONS       = 100
