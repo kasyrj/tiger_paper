@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     reader = formats.getReader("cldf")
+    reader.synonym_strategy = "minimum"
     content = reader.getContents(args.in_file)
     taxa = content[0]
     chars = content[1]
