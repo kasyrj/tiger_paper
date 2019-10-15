@@ -19,7 +19,7 @@ URALEX_ZIP          = "uralex-v1.0.zip"
 URALEX_FOLDER       = "lexibank-uralex-efe0a73"
 TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/f0152241a38bbba49bae28dceaf8d1b848bfbb30.zip'
 TIGER_ZIP           = "tiger-calculator.zip"
-TIGER_FOLDER        = "tiger-calculator-91b4509615bb91441f51eb4f8f1974dca01814dc"
+TIGER_FOLDER        = "tiger-calculator-f0152241a38bbba49bae28dceaf8d1b848bfbb30"
 N_REPETITIONS       = 100
 URALEX_BASE         = "uralex"
 SWAMP_BASE          = 'swamp'
@@ -100,6 +100,9 @@ def calculate_delta_and_q(filename):
     print(err.decode("utf-8"), file=sys.stderr)
     write_lines_to_file(out.decode("utf-8"), filename + "_delta_qresidual.txt")
 
+def get_uralex_counts():
+    code,out,err = run([PYTHON_CMD, "get_uralex_counts.py"])    
+    
 if __name__ == '__main__':
 
     download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
@@ -116,6 +119,9 @@ if __name__ == '__main__':
         exit(1)
 
     print("Successfully created folder %s" % ANALYSIS_FOLDER)
+    
+    print("Getting UraLex cognate counts...")
+    get_uralex_counts()
 
     print("Generating swamp data...")
     swampdir = os.path.join(ANALYSIS_FOLDER,SWAMP_BASE)
