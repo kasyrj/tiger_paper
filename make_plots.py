@@ -173,6 +173,33 @@ def metric_comparison_plot():
     
     plt.tight_layout()
     plt.savefig("plots/metric_comparison_plot.png", dpi=300)
+
+def tiger_rate_cognates_plot():
+    rates = {}
+    cognates = {}
+    with open("analyses/uralex/uralex_rates.txt", "r") as fp:
+        for line in fp:
+            meaning, rate = line.strip().split()
+            rates[meaning] = float(rate)
+    with open("uralex_counts.csv","r") as fp: # counts based on minimising strategy
+        for line in fp:
+            meaning, cognate_count = line.strip().split(",")
+            cognates[meaning] = int(cognate_count)
+    rates_sorted = []
+    cognates_sorted = []
+    for k in sorted(rates.keys()):
+        rates_sorted.append(rates[k])
+        cognates_sorted.append(cognates[k])
+    y_axis = range(min(cognates_sorted), max(cognates_sorted)+1)
+    fig,ax = plt.subplots()
+    sns.set(style="whitegrid", palette="muted")
+    sns.set_context("paper",font_scale=2.0)
+    plt.tight_layout()
+    ax.scatter(rates_sorted, cognates_sorted)
+    plt.yticks(y_axis[1::2])
+    ax.set_xlabel('TIGER rate')
+    ax.set_ylabel('Cognate count')
+    plt.savefig("plots/tiger_rates_vs_cognates.png")
     
 if __name__ == "__main__":
     if not os.path.exists("plots"):
@@ -182,4 +209,5 @@ if __name__ == "__main__":
     tiger_rates_semantic_categories()
     tiger_rate_dist_plot()
     metric_comparison_plot()
+    tiger_rate_cognates_plot()
     
