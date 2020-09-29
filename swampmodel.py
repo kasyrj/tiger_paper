@@ -7,14 +7,14 @@ import random
 
 import dataframe
 
-class MarshGenerator():
+class MarshSimulator():
     
     _nfeatures = 0
     _ntaxa = 0
     _taxon_namelen = 0
     _model = None
 
-    def __init__(self, nfeatures = 0, ntaxa = 0, taxon_namelen = 3, model=None):
+    def __init__(self, ntaxa = 0, nfeatures = 0, model=None, taxon_namelen = 3):
         assert isinstance(nfeatures,int),"nfeatures must be an integer"
         assert isinstance(ntaxa,int),"ntaxa must be an integer"
         assert isinstance(taxon_namelen,int),"taxon_namelen must be an integer"

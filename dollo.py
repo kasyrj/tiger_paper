@@ -17,12 +17,13 @@ def generate_yule_tree(taxa, birthrate=1.0, taxa_names=None):
 
 class DolloSimulator():
 
-    def __init__(self, n_languages, n_features, cognate_birthrate=0.5, cognate_gamma=1.0):
+    def __init__(self, n_languages, n_features, cognate_birthrate=0.5, cognate_gamma=1.0, borrowing_prob=0.0):
         tree = generate_yule_tree(n_languages, 1.0)
         self.tree = tree
         self.n_features = n_features
         self.cognate_birthrate = cognate_birthrate
         self.cognate_gamma = cognate_gamma
+        self.borrowing_prob = borrowing_prob
 
     def generate_data(self):
         """Generate cognate class data in a Dollo-like fashion."""
@@ -60,5 +61,8 @@ class DolloSimulator():
                 if iso not in self.data.data:
                     self.data.data[iso] = {}
                 self.data.data[iso]["f_%03d" % i] = trans[leaf.cognate]
+
+        if self.borrowing_prob:
+            self.data.borrow(self.borrowing_prob)
 
         return self.data
