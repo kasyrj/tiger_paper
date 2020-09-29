@@ -14,6 +14,8 @@ import subprocess
 from dollo import DolloSimulator
 from chain import ChainSimulator
 from swampmodel import MarshSimulator
+from make_tables import main as make_tables
+from make_plots import main as make_plots
 
 MATERIALS_FOLDER    = 'materials'
 ANALYSIS_FOLDER     = 'analyses'
@@ -230,7 +232,7 @@ if __name__ == '__main__':
         run_tiger(filename,["-f","harvest","-n"])
 
     print("Tabulating agreements with simulations...")
-    run([PYTHON_CMD, "make_tables.py"])
+    make_tables()
         
     print("Plotting results...")
-    run([PYTHON_CMD, "make_plots.py"])
+    make_plots()

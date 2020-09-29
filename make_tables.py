@@ -93,7 +93,7 @@ def make_mean_rates_table():
     table.append("%s\t%f\t%f\t%f" % ("uralex",mean_tiger,mean_delta,mean_qresi))
     return table
     
-if __name__ == '__main__':
+def main():
     comparisons_table = make_comparison_table()
     means_table = make_mean_rates_table()
     if not os.path.exists("tables"):
@@ -105,4 +105,5 @@ if __name__ == '__main__':
         for line in means_table:
             f.write(line + "\n")
 
-    
+if __name__ == '__main__':
+    main()

@@ -246,7 +246,7 @@ def param_exploration_plot():
     plt.tight_layout()
     plt.savefig("plots/param_exploration.png")
 
-if __name__ == "__main__":
+def main():
     if not os.path.exists("plots"):
         os.mkdir("plots")
     cognate_class_count_plot()
@@ -256,3 +256,6 @@ if __name__ == "__main__":
     metric_comparison_plot()
     tiger_rate_cognates_plot()
     param_exploration_plot()
+
+if __name__ == "__main__":
+    main()
