@@ -58,14 +58,14 @@ def download_and_extract(url,filename,destination):
     print("Done.")
 
     
-def run_generator_with_params(output_directory,filebase,params):
+def run_generator_with_params(output_directory,filebase,params,taxon_count=26,feature_count=313):
     try:
         os.mkdir(output_directory)
     except OSError:
         print("Failed to create folder %s." % output_directory)
         exit(1)
 
-    params = ["-l",  "26", "-f", "313"] + params
+    params = ["-l",  str(taxon_count), "-f", str(feature_count)] + params
     for i in range(N_REPETITIONS):
         code,out,err = run([PYTHON_CMD, "generate.py"] + params)
         print(err.decode("utf-8"), file=sys.stderr)
@@ -192,6 +192,17 @@ if __name__ == '__main__':
         if os.path.isfile(os.path.join(harvestdir,"splitstree_input.nex")) == False: # only create for first file
             harvest_to_nexus(harvestdir, i)
         calculate_delta_and_q(i)
+
+    print("Exploring tree model parameter space...")
+    dirname = "param_exploration"
+    theta = 1000**0.125 # (8th root of 1000)
+    for taxa_count in (10, 25, 50, 100, 250, 500):
+        for i, relative_cognate_br in enumerate((theta**x for x in range(-8, 9))):
+            params = ["-m", "dollo", "-c", str(relative_cognate_br)]
+            basename = "{}_taxa_br_{}".format(taxa_count, i)
+            run_generator_with_params(output_directory=dirname, filebase=basename, params=params, taxon_count=taxa_count, feature_count=200)
+    for filename in sorted(glob.glob(os.path.join(dirname,"*.csv"))):
+        run_tiger(filename,["-f","harvest","-n"])
 
     print("Tabulating agreements with simulations...")
     run([PYTHON_CMD, "make_tables.py"])

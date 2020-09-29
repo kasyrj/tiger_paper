@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import glob
+from math import log
 import os, os.path
 
 import scipy.stats
@@ -200,7 +201,51 @@ def tiger_rate_cognates_plot():
     ax.set_xlabel('TIGER rate')
     ax.set_ylabel('Cognate count')
     plt.savefig("plots/tiger_rates_vs_cognates.png")
-    
+
+def param_exploration_plot():
+    ids = []
+    taxon_counts = []
+    birth_rates = []
+    mean_tigers = []
+    theta = 100**0.2
+    theta = 1000**0.125 # (8th root of 1000)
+    brs = [theta**x for x in range(-8, 9)]
+    for i, filename in enumerate(glob.glob("param_exploration/*_rates.txt")):
+        taxa, _, _, br, n = filename.split("/")[-1].split(".")[0].split("_")
+        with open(filename, "r") as fp:
+            x, N = 0, 0
+            for line in fp:
+                _, r = line.strip().split("\t")
+                x += float(r)
+                N += 1
+        assert N == 200
+        ids.append(i)
+        mean_tigers.append(x/N)
+        taxon_counts.append(taxa)
+        birth_rates.append(log(brs[int(br)], 10))
+    df = pd.DataFrame({"id": ids,
+        "taxon_count": taxon_counts,
+        "birth_rate": birth_rates,
+        "mean_tiger": mean_tigers
+        })
+    df.to_csv("param_exp.csv")
+
+    plt.figure(figsize=(12,6))
+    sns.set(style="whitegrid", palette="muted")
+    sns.set_context("paper",font_scale=2.0)
+    ax = sns.lineplot(data=df,
+            x = "birth_rate",
+            y = "mean_tiger",
+            hue = "taxon_count",
+            hue_order = ("10", "25", "50", "100", "250", "500"))
+    ax.set(xlabel='Relative cognate birthrate')
+    ax.set(ylabel='Mean TIGER rate')
+    ax.set_xticks([log(x, 10) for x in brs])
+    ax.set_xticklabels(brs)
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.savefig("plots/param_exploration.png")
+
 if __name__ == "__main__":
     if not os.path.exists("plots"):
         os.mkdir("plots")
@@ -210,4 +255,4 @@ if __name__ == "__main__":
     tiger_rate_dist_plot()
     metric_comparison_plot()
     tiger_rate_cognates_plot()
-    
+    param_exploration_plot()
