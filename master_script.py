@@ -131,23 +131,20 @@ def calculate_delta_and_q(filename):
 def get_uralex_counts():
     code,out,err = run([PYTHON_CMD, "get_uralex_counts.py"])    
     
-if __name__ == '__main__':
+def generate_synthetic_datasets():
 
-    download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
-    download_and_extract(TIGER_URL, TIGER_ZIP, MATERIALS_FOLDER)
-    
     print ("Creating analysis folder...")
     if os.path.exists(ANALYSIS_FOLDER):
         print("Folder %s already exists. Remove or rename it to proceed." % ANALYSIS_FOLDER)
         exit(1)
     try:
-        os.mkdir(ANALYSIS_FOLDER)
+        os.makedirs(ANALYSIS_FOLDER, exist_ok=True)
     except OSError:
         print("Failed to create folder %s." % ANALYSIS_FOLDER)
         exit(1)
 
     print("Successfully created folder %s" % ANALYSIS_FOLDER)
-    
+
     print("Getting UraLex cognate counts...")
     get_uralex_counts()
 
@@ -174,6 +171,8 @@ if __name__ == '__main__':
         print(borrowingdir, BASE, borrowing_rate)
     print("Done.")
 
+def analyse_all_datasets():
+
     print("Processing UraLex data...")
     uralexdir = os.path.join(ANALYSIS_FOLDER,URALEX_BASE)
     try:
@@ -190,6 +189,7 @@ if __name__ == '__main__':
     print("Done.")    
 
     print("Processing swamp data...")
+    swampdir = os.path.join(ANALYSIS_FOLDER,SWAMP_BASE)
     for i in sorted(glob.glob(os.path.join(swampdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
         if os.path.isfile(os.path.join(swampdir,"splitstree_input.nex")) == False: # only create for first file
@@ -197,6 +197,7 @@ if __name__ == '__main__':
         calculate_delta_and_q(i)
 
     print("Processing dialect chain data...")
+    dialectdir = os.path.join(ANALYSIS_FOLDER,DIALECT_BASE)
     for i in sorted(glob.glob(os.path.join(dialectdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
         if os.path.isfile(os.path.join(dialectdir,"splitstree_input.nex")) == False: # only create for first file
@@ -204,6 +205,7 @@ if __name__ == '__main__':
         calculate_delta_and_q(i)
 
     print("Processing harvest data...")
+    harvestdir = os.path.join(ANALYSIS_FOLDER,HARVEST_BASE)
     for i in sorted(glob.glob(os.path.join(harvestdir,"*.csv"))):
         run_tiger(i,["-f","harvest","-n"])
         if os.path.isfile(os.path.join(harvestdir,"splitstree_input.nex")) == False: # only create for first file
@@ -220,6 +222,8 @@ if __name__ == '__main__':
                 harvest_to_nexus(borrowingdir, i)
             calculate_delta_and_q(i)
 
+def explore_parameter_space():
+
     print("Exploring tree model parameter space...")
     dirname = "param_exploration"
     theta = 1000**0.125 # (8th root of 1000)
@@ -230,6 +234,15 @@ if __name__ == '__main__':
             run_tree_model(dirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br)
     for filename in sorted(glob.glob(os.path.join(dirname,"*.csv"))):
         run_tiger(filename,["-f","harvest","-n"])
+
+if __name__ == '__main__':
+
+    download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
+    download_and_extract(TIGER_URL, TIGER_ZIP, MATERIALS_FOLDER)
+
+    generate_synthetic_datasets()
+    analyse_all_datasets()
+    explore_parameter_space()
 
     print("Tabulating agreements with simulations...")
     make_tables()
