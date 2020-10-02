@@ -28,7 +28,7 @@ DATASETS = ["uralex",
             "swamp"]
 
 DATAGAPS_DIR = "datagaps"
-COVERAGES = [0.9, 0.8, 0.7, 0.6, 0.5]
+COVERAGES = [0.8, 0.6, 0.4, 0.2]
 RANDOM_SEED = 1234
 
 def make_random_gaps(coverage, data):
