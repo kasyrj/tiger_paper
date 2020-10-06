@@ -15,17 +15,17 @@ import glob
 
 TIGER_PARAMS = ["-f","harvest","-n", "-i", "?"]
 
-IN_FILES = ["analyses/uralex/uralex.csv",
-            "analyses/borrowing_20/borrowing_20_001.csv",
-            "analyses/pure_tree/pure_tree_001.csv",
+IN_FILES = ["analyses/pure_tree/pure_tree_001.csv",
+            "analyses/borrowing_10/borrowing_10_001.csv",
             "analyses/dialect/dialect_001.csv",
-            "analyses/swamp/swamp_001.csv"]
+            "analyses/swamp/swamp_001.csv",
+            "analyses/uralex/uralex.csv"]
 
-DATASETS = ["uralex",
-            "borrowing",
-            "pure_tree",
+DATASETS = ["pure_tree",
+            "borrowing_10",
             "dialect",
-            "swamp"]
+            "swamp",
+            "uralex"]
 
 DATAGAPS_DIR = "datagaps"
 COVERAGES = [0.8, 0.6, 0.4, 0.2]
@@ -59,20 +59,19 @@ if __name__ == '__main__':
     import formats
     reader = formats.getReader("harvest")
     results = {}
+    for c in COVERAGES:
+        results[c] = {}
+    results[1.0] = {}
     for n in range(len(IN_FILES)):
         rates = []
         current_data = DATASETS[n]
-        results[current_data] = {}
-        results[current_data][1.0] = []
         content = reader.getContents(IN_FILES[n])
         tiger_rates_file = glob.glob(IN_FILES[n][:-4] + "*_rates.txt")[0] # do not recalculate full rates
         print("Adding TIGER results from " + tiger_rates_file)
         with open(tiger_rates_file, "r") as fp:
             rates.extend([float(x.strip().split()[-1]) for x in fp.readlines()])
-            results[current_data][1.0].append(numpy.mean(rates))
-            results[current_data][1.0].append(numpy.std(rates))
+            results[1.0][current_data] = numpy.mean(rates)
         for c in COVERAGES:
-            results[current_data][c] = []
             gapped_content = make_random_gaps(coverage=c, data=content)
             taxa = gapped_content[0]
             chars = gapped_content[1]
@@ -92,17 +91,27 @@ if __name__ == '__main__':
             rates = []
             with open(outfile_name + "_rates.txt", "r") as fp:
                 rates.extend([float(x.strip().split()[-1]) for x in fp.readlines()])
-                results[current_data][c].append(numpy.mean(rates))
-                results[current_data][c].append(numpy.std(rates))
+                results[c][current_data] = numpy.mean(rates)
+                
     print("Writing tables...")
-    for dataset in results.keys():
-        table_file = []
+    table_file = []
+    table_file.append("dataset")
+    for coverage in sorted(results.keys(), reverse=True):
+        table_file[-1] += "\t" + str(coverage)
+    table_file[-1] += "\tmean\tsd"
+    for dataset in DATASETS:
         table_file.append(dataset)
-        table_file.append("coverage" + "\t" + "mean" + "\t" + "sd")
-        for coverage in sorted(results[dataset].keys(),reverse=True):
-            table_file.append(str(coverage) + "\t" +
-                              str(results[dataset][coverage][0]) + "\t" +
-                              str(results[dataset][coverage][1]))
-            with open(os.path.join(DATAGAPS_DIR, dataset+"_gaps.tsv"), "w") as fp:
-                for line in table_file:
-                    fp.write(line + "\n")
+        values = []
+        for coverage in sorted(results.keys(), reverse=True):
+            table_file[-1] += "\t" + str(results[coverage][dataset])
+            values.append(results[coverage][dataset])
+        table_file[-1] += "\t" + str(numpy.mean(values)) + "\t" + str(numpy.std(values))
+                
+    with open(os.path.join(DATAGAPS_DIR, "gaps.tsv"), "w") as fp:
+        for line in table_file:
+            fp.write(line + "\n")
+
+    for dataset in results.keys():
+        for item in DATASETS:
+            table_file.append(item + "\t")
+    
