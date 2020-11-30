@@ -9,58 +9,24 @@ import dataframe
 
 class MarshSimulator():
     
-    _nfeatures = 0
-    _ntaxa = 0
+    _n_features = 0
+    _n_langs = 0
     _taxon_namelen = 0
     _model = None
 
-    def __init__(self, ntaxa = 0, nfeatures = 0, model=None, taxon_namelen = 3):
-        assert isinstance(nfeatures,int),"nfeatures must be an integer"
-        assert isinstance(ntaxa,int),"ntaxa must be an integer"
-        assert isinstance(taxon_namelen,int),"taxon_namelen must be an integer"
+    def __init__(self, n_langs, n_features, alpha, dist=None, taxon_namelen = 3):
         assert taxon_namelen > 0, "taxon name length must be 1 or more"
-        assert ntaxa > 0, "ntaxa must be 1 or more"
-        assert nfeatures > 0, "nfeatures must be 1 or more"
-        self._nfeatures = nfeatures
-        self._ntaxa = ntaxa
-        self._taxon_namelen = taxon_namelen
-        if model == None:
-            # Default model
-            model = { "type": "simple" }
-        if model["type"] == "poisson" and "lambda" not in model:
-            model["lambda"] = ntaxa / 2.0
-        if model["type"] == "negbinom" and "n" not in model:
-            model["n"] = 9
-        if model["type"] == "negbinom" and "p" not in model:
-            model["p"] = 0.49
-        if "min" not in model:
-            model["min"] = 1
-        if "max" not in model:
-            model["max"] = self._ntaxa
-        if "samples" not in model:
-            model["samples"] = 10
-        if "lambda" in model:
-            model["lambda"] = float(model["lambda"])
-        if "alpha" in model:
-            model["alpha"] = float(model["alpha"])
+        self._n_features = n_features
+        self._n_langs = n_langs
+        self.alpha = alpha
+        # Accept arbitrary cognate class count distributions,
+        # but default to a very basic uniform distribution between 1 and n_langs
+        if not dist:
+            self.dist = scipy.stats.randint(1, n_langs + 1)
         else:
-            model["alpha"] = 0.8
-        self.assertModel(model)
-        self._model = model
+            self.dist = dist
 
-    def assertModel(self,model):
-        assert (model["type"] in ("simple","poisson","negbinom")), "Unrecognized model"
-        if model["type"] == "poisson":
-            assert isinstance(model["lambda"],float), "Lambda must be a float"
-            assert isinstance(model["samples"],int), "Samples must be an interger"
-        elif model["type"] == "negbinom":
-            assert isinstance(model["n"],int), "n must be an int"
-            assert isinstance(model["p"],float), "p must be a float"
-        elif model["type"] == "simple":            
-            assert isinstance(model["min"],int),"Model parameter 'min' must be an integer"
-            assert isinstance(model["max"],int),"Model parameter 'max' must be an integer"
-            assert model["min"] <= model["max"], "Model parameter 'min' cannot exceed 'max'"
-            assert model["max"] <= self._ntaxa, "Model parameter 'max' cannot exceed 'ntaxa'"
+        self._taxon_namelen = taxon_namelen
 
     def generate_data(self):
         # Generate data
@@ -79,7 +45,7 @@ class MarshSimulator():
         
     def _generateTaxa(self):
         taxa = []
-        for i in range(self._ntaxa):
+        for i in range(self._n_langs):
             current = self._generateTaxon()
             while current in taxa:
                 current = self._generateTaxon()
@@ -94,22 +60,14 @@ class MarshSimulator():
 
     def _generateAlignment(self):
         output = []
-        for i in range(self._ntaxa):
+        for i in range(self._n_langs):
             output.append([])
 
-        # Get appropriate distribution
-        if self._model["type"] == "simple":
-            dist = scipy.stats.randint(self._model["min"],self._model["max"] + 1)
-        elif self._model["type"] == "poisson":
-            dist = scipy.stats.poisson(self._model["lambda"])
-        elif self._model["type"] == "negbinom":
-            dist = scipy.stats.nbinom(self._model["n"], self._model["p"])
-
         # Generate cognate class counts
-        feature_sizes = dist.rvs(self._nfeatures)
+        feature_sizes = self.dist.rvs(self._n_features)
         test_counter = int(self._model["samples"])
         while 0 in feature_sizes or max(feature_sizes) > self._model["max"]:
-            feature_sizes = dist.rvs(self._nfeatures)
+            feature_sizes = self.dist.rvs(self._n_features)
             test_counter -= 1
             if test_counter == 0:
                 print("Could not generate a suitable sample of features with " + str(self._model["samples"]) + " sampling attempts. Try different parameters, or increase the number of sampling attempts.")
@@ -126,7 +84,7 @@ class MarshSimulator():
             # by sampling each cognate class precisely once (in numeric order, but fear not, all will get shuffled at the end)
             assignments = list(range(classes))
             # Now, we probably need to make some additional assignments.  How many?
-            remaining = self._ntaxa - len(assignments)
+            remaining = self._n_langs - len(assignments)
             if remaining:
                 # Now, we don't care, for the remaining assignments, that every cognate class is represented at least once.
                 # We can just sample randomly, and add the results to what we already have.  We could just sample uniformly
@@ -144,7 +102,7 @@ class MarshSimulator():
             # Shuffle everything as promised earlier
             random.shuffle(assignments)
             # Sanity checks
-            assert len(assignments) == self._ntaxa
+            assert len(assignments) == self._n_langs
             assert len(set(assignments)) == classes
             # Add to master output
             for j, x in enumerate(assignments):
@@ -153,8 +111,8 @@ class MarshSimulator():
 
     def _generateFeatureNames(self):
         output = []
-        for i in range(1,self._nfeatures+1):
-            output.append("f" + str(i).zfill(len(str(self._nfeatures))))
+        for i in range(1,self._n_features+1):
+            output.append("f" + str(i).zfill(len(str(self._n_features))))
         return output
     
     def __del__(self):

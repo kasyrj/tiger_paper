@@ -11,6 +11,8 @@ import os
 import glob
 import subprocess
 
+import scipy.stats
+
 from dollo import DolloSimulator
 from chain import ChainSimulator
 from swampmodel import MarshSimulator
@@ -30,10 +32,10 @@ N_REPETITIONS       = 100
 URALEX_BASE         = "uralex"
 URALEX_N_LANGS      = 26
 URALEX_N_FEATURES   = 313
+URALEX_ALPHA        = 0.64
+URALEX_COG_DIST     = scipy.stats.nbinom(9, 0.49)
 SWAMP_BASE          = 'swamp'
-URALEX_SWAMP_MODELSPEC = {"type": "negbinom", "alpha": "0.8", "n": 9, "p": 0.49, "samples": 100000 }
 DIALECT_BASE        = 'dialect'
-URALEX_CHAIN_ALPHA  = 0.8
 HARVEST_BASE        = 'pure_tree'
 URALEX_COG_BIRTH    = 2.0
 BORROWING_BASE      = 'borrowing'
@@ -85,19 +87,19 @@ def run_tree_model(output_directory, filebase, languages, features, cognate_birt
 def run_tree_model_with_uralex_params(output_directory, filebase, borrowing_probability=0.0):
     run_tree_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_COG_BIRTH, 1.0, borrowing_probability)
 
-def run_chain_model(output_directory, filebase, languages, features, alpha):
-    simulator = ChainSimulator(languages, features, alpha)
+def run_chain_model(output_directory, filebase, languages, features, alpha, dist):
+    simulator = ChainSimulator(languages, features, alpha, dist)
     run_simulator(simulator, output_directory, filebase)
 
 def run_chain_model_with_uralex_params(output_directory, filebase):
-    run_chain_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_CHAIN_ALPHA)
+    run_chain_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_ALPHA, URALEX_COG_DIST)
 
-def run_swamp_model(output_directory, filebase, languages, features, modelspec):
-    simulator = MarshSimulator(languages, features, modelspec)
+def run_swamp_model(output_directory, filebase, languages, alpha, dist):
+    simulator = MarshSimulator(languages, features, alpha, dist)
     run_simulator(simulator, output_directory, filebase)
 
 def run_swamp_model_with_uralex_params(output_directory, filebase):
-    run_swamp_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_SWAMP_MODELSPEC)
+    run_swamp_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_ALPHA, URALEX_COG_DIST)
 
 def run_tiger(filename,params,outfile=None):
     print("Calculating TIGER rates for %s" % filename)
