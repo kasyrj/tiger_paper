@@ -9,10 +9,16 @@ dummy_isos = set(["".join(chars) for chars in itertools.combinations("abcdefghij
 
 class ChainSimulator():
 
-    def __init__(self, n_langs, n_features, alpha):
+    def __init__(self, n_langs, n_features, alpha, dist=None):
         self.n_langs = n_langs
         self.n_features = n_features
         self.alpha = alpha
+        # Accept arbitrary cognate class count distributions,
+        # but default to the UraLex-fit negative binomial
+        if not dist:
+            self.dist = scipy.stats.nbinom(9, 0.49)
+        else:
+            self.dist = dist
 
     def generate_data(self):
         """Generate cognate class data in a Dollo-like fashion."""
@@ -21,13 +27,12 @@ class ChainSimulator():
 
         langs = random.sample(dummy_isos, self.n_langs)
         self.langs = langs
-        dist = scipy.stats.nbinom(9, 0.49)
 
         # Generate cognate class counts
-        feature_sizes = dist.rvs(self.n_features)
+        feature_sizes = self.dist.rvs(self.n_features)
         test_counter = 100000
         while 0 in feature_sizes or max(feature_sizes) > self.n_langs:
-            feature_sizes = dist.rvs(self.n_features)
+            feature_sizes = self.dist.rvs(self.n_features)
             test_counter -= 1
             if test_counter == 0:
                 print("Could not generate a suitable sample of features with many sampling attempts.")
