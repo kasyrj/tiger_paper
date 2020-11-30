@@ -14,9 +14,9 @@ class ChainSimulator():
         self.n_features = n_features
         self.alpha = alpha
         # Accept arbitrary cognate class count distributions,
-        # but default to the UraLex-fit negative binomial
+        # but default to a very basic uniform distribution between 1 and n_langs
         if not dist:
-            self.dist = scipy.stats.nbinom(9, 0.49)
+            self.dist = scipy.stats.randint(1, n_langs + 1)
         else:
             self.dist = dist
 
