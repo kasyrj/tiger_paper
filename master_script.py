@@ -15,7 +15,7 @@ import scipy.stats
 
 from dollo import DolloSimulator
 from chain import ChainSimulator
-from swampmodel import MarshSimulator
+from swamp import SwampSimulator
 from make_tables import main as make_tables
 from make_plots import main as make_plots
 
@@ -95,7 +95,7 @@ def run_chain_model_with_uralex_params(output_directory, filebase):
     run_chain_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_ALPHA, URALEX_COG_DIST)
 
 def run_swamp_model(output_directory, filebase, languages, alpha, dist):
-    simulator = MarshSimulator(languages, features, alpha, dist)
+    simulator = SwampSimulator(languages, features, alpha, dist)
     run_simulator(simulator, output_directory, filebase)
 
 def run_swamp_model_with_uralex_params(output_directory, filebase):

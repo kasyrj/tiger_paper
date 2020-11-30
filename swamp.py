@@ -7,7 +7,7 @@ import random
 
 import dataframe
 
-class MarshSimulator():
+class SwampSimulator():
     
     _n_features = 0
     _n_langs = 0
