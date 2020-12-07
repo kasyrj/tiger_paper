@@ -65,12 +65,12 @@ class SwampSimulator():
 
         # Generate cognate class counts
         feature_sizes = self.dist.rvs(self._n_features)
-        test_counter = int(self._model["samples"])
-        while 0 in feature_sizes or max(feature_sizes) > self._model["max"]:
+        test_counter = 100000
+        while 0 in feature_sizes or max(feature_sizes) > self._n_langs:
             feature_sizes = self.dist.rvs(self._n_features)
             test_counter -= 1
             if test_counter == 0:
-                print("Could not generate a suitable sample of features with " + str(self._model["samples"]) + " sampling attempts. Try different parameters, or increase the number of sampling attempts.")
+                print("Could not generate a suitable sample of features with many sampling attempts.")
                 exit(1)
 
         # Assign taxa to cognate classes
@@ -93,7 +93,7 @@ class SwampSimulator():
                 # distribution, which is itself sampled from a symmetric Dirichlet distribution.  By setting the Dirichlet's
                 # alpha parameter very high, we can gracefully degrade to the original uniform distribution.
                 # First, sample the multinomial probabilities.
-                multinomial_probs = scipy.stats.dirichlet.rvs(alpha=[self._model["alpha"]]*classes)[0]
+                multinomial_probs = scipy.stats.dirichlet.rvs(alpha=[self.alpha]*classes)[0]
                 # Now sample the counts of each class, after making `remaining` draws from the multinomial dist
                 multinomial_counts = scipy.stats.multinomial.rvs(n=remaining,p=multinomial_probs)
                 # Add the actual assignments to `assignments`
