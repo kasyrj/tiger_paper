@@ -9,6 +9,7 @@ import zipfile
 import sys
 import os
 import glob
+import random
 import subprocess
 
 import scipy.stats
@@ -228,13 +229,60 @@ def explore_parameter_space():
 
     print("Exploring tree model parameter space...")
     dirname = "param_exploration"
+
+    # Swamp and chain models
+    subdirname = os.path.join(dirname, "swamp")
+    try:
+        os.makedirs(subdirname, exist_ok=True)
+    except OSError:
+        print("Failed to create folder %s." % subdirname)
+        exit(1)
+
+    subdirname = os.path.join(dirname, "chain")
+    try:
+        os.makedirs(subdirname, exist_ok=True)
+    except OSError:
+        print("Failed to create folder %s." % subdirname)
+
+    # Do swamp and chain model exploration
+    for taxa_count in (10, 25, 50, 100, 250, 500):
+        for i, alpha in enumerate((0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0)):
+            basename = "{}_taxa_alpha_{}".format(taxa_count, i)
+
+            for i in range(10):
+                if taxa_count == 10:
+                    dist = scipy.stats.binom(taxa_count, 0.33)
+                else:
+                    p = max(random.normalvariate(0.33, 0.1), 0.13)
+#                    print(p)
+                    dist = scipy.stats.binom(taxa_count, p)
+
+                for name, Simulator in zip(("swamp", "chain"), (SwampSimulator, ChainSimulator)):
+                    subdirname = os.path.join(dirname, name)
+                    simulator = Simulator(taxa_count, 200, alpha, dist)
+                    while True:
+                        try:
+                            data = simulator.generate_data()
+                            break
+                        except ValueError:
+                            pass
+                    output = data.format_output()
+                    filename = os.path.join(subdirname,basename + "_" + str(i+1).zfill(len(str(N_REPETITIONS))) + ".csv")
+                    write_lines_to_file(output, filename)
+
+    for name in ("swamp", "chain"):
+        subdirname = os.path.join(dirname, name)
+        for filename in sorted(glob.glob(os.path.join(subdirname,"*.csv"))):
+            run_tiger(filename,["-f","harvest","-n"])
+
+    # Tree model
+    subdirname = os.path.join(dirname, "tree")
     theta = 1000**0.125 # (8th root of 1000)
     for taxa_count in (10, 25, 50, 100, 250, 500):
         for i, relative_cognate_br in enumerate((theta**x for x in range(-8, 9))):
-            params = ["-m", "dollo", "-c", str(relative_cognate_br)]
             basename = "{}_taxa_br_{}".format(taxa_count, i)
-            run_tree_model(dirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br)
-    for filename in sorted(glob.glob(os.path.join(dirname,"*.csv"))):
+            run_tree_model(subdirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br)
+    for filename in sorted(glob.glob(os.path.join(subdirname,"*.csv"))):
         run_tiger(filename,["-f","harvest","-n"])
 
 if __name__ == '__main__':
