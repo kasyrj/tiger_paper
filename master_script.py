@@ -228,24 +228,20 @@ def analyse_all_datasets():
 
 def explore_parameter_space():
 
-    print("Exploring tree model parameter space...")
     dirname = "param_exploration"
 
-    # Swamp and chain models
-    subdirname = os.path.join(dirname, "swamp")
-    try:
-        os.makedirs(subdirname, exist_ok=True)
-    except OSError:
-        print("Failed to create folder %s." % subdirname)
-        exit(1)
-
-    subdirname = os.path.join(dirname, "chain")
-    try:
-        os.makedirs(subdirname, exist_ok=True)
-    except OSError:
-        print("Failed to create folder %s." % subdirname)
+    # Create output directories
+    for name in ("swamp", "chain", "tree"):
+        subdirname = os.path.join(dirname, name)
+        try:
+            os.makedirs(subdirname, exist_ok=True)
+        except OSError:
+            print("Failed to create folder %s." % subdirname)
+            exit(1)
 
     # Do swamp and chain model exploration
+    print("Exploring swamp and chain model parameter spaces...")
+
     for taxa_count in (10, 25, 50, 100, 250, 500):
         for i, alpha in enumerate((0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0)):
             basename = "{}_taxa_alpha_{}".format(taxa_count, i)
@@ -255,7 +251,6 @@ def explore_parameter_space():
                     dist = scipy.stats.binom(taxa_count, 0.33)
                 else:
                     p = max(random.normalvariate(0.33, 0.1), 0.13)
-#                    print(p)
                     dist = scipy.stats.binom(taxa_count, p)
 
                 for name, Simulator in zip(("swamp", "chain"), (SwampSimulator, ChainSimulator)):
@@ -277,6 +272,8 @@ def explore_parameter_space():
             run_tiger(filename,["-f","harvest","-n"])
 
     # Tree model
+    print("Exploring tree model parameter space...")
+
     subdirname = os.path.join(dirname, "tree")
     theta = 1000**0.125 # (8th root of 1000)
     for taxa_count in (10, 25, 50, 100, 250, 500):
