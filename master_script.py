@@ -30,6 +30,7 @@ TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/f01522
 TIGER_ZIP           = "tiger-calculator.zip"
 TIGER_FOLDER        = "tiger-calculator-f0152241a38bbba49bae28dceaf8d1b848bfbb30"
 N_REPETITIONS       = 100
+N_EXPLORE_REPS      = 20
 URALEX_BASE         = "uralex"
 URALEX_N_LANGS      = 26
 URALEX_N_FEATURES   = 313
@@ -78,12 +79,12 @@ def run_simulator(simulator, output_directory, filebase, repetitions=N_REPETITIO
     for i in range(repetitions):
         data = simulator.generate_data()
         output = data.format_output()
-        filename = os.path.join(output_directory,filebase + "_" + str(i+1).zfill(len(str(N_REPETITIONS))) + ".csv")
+        filename = os.path.join(output_directory,filebase + "_" + str(i+1).zfill(len(str(repetitions))) + ".csv")
         write_lines_to_file(output, filename)
 
-def run_tree_model(output_directory, filebase, languages, features, cognate_birthrate, cognate_gamma=1.0, borrowing_probability=0.0):
+def run_tree_model(output_directory, filebase, languages, features, cognate_birthrate, cognate_gamma=1.0, borrowing_probability=0.0, repetitions=N_REPETITIONS):
     simulator = DolloSimulator(languages, features, cognate_birthrate, cognate_gamma, borrowing_probability)
-    run_simulator(simulator, output_directory, filebase)
+    run_simulator(simulator, output_directory, filebase, repetitions)
 
 def run_tree_model_with_uralex_params(output_directory, filebase, borrowing_probability=0.0):
     run_tree_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_COG_BIRTH, 1.0, borrowing_probability)
@@ -249,7 +250,7 @@ def explore_parameter_space():
         for i, alpha in enumerate((0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0)):
             basename = "{}_taxa_alpha_{}".format(taxa_count, i)
 
-            for i in range(10):
+            for i in range(N_EXPLORE_REPS):
                 if taxa_count == 10:
                     dist = scipy.stats.binom(taxa_count, 0.33)
                 else:
@@ -267,7 +268,7 @@ def explore_parameter_space():
                         except ValueError:
                             pass
                     output = data.format_output()
-                    filename = os.path.join(subdirname,basename + "_" + str(i+1).zfill(len(str(N_REPETITIONS))) + ".csv")
+                    filename = os.path.join(subdirname,basename + "_" + str(i+1).zfill(len(str(N_EXPLORE_REPS))) + ".csv")
                     write_lines_to_file(output, filename)
 
     for name in ("swamp", "chain"):
@@ -281,7 +282,7 @@ def explore_parameter_space():
     for taxa_count in (10, 25, 50, 100, 250, 500):
         for i, relative_cognate_br in enumerate((theta**x for x in range(-8, 9))):
             basename = "{}_taxa_br_{}".format(taxa_count, i)
-            run_tree_model(subdirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br)
+            run_tree_model(subdirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br, reptitions=N_EXPLORE_REPS)
     for filename in sorted(glob.glob(os.path.join(subdirname,"*.csv"))):
         run_tiger(filename,["-f","harvest","-n"])
 
