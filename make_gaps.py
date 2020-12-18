@@ -33,52 +33,96 @@ DATASETS = ["pure_tree",
             "uralex"]
 
 DATAGAPS_DIR = "datagaps"
-COVERAGES = [0.8, 0.6, 0.4, 0.2]
+COVERAGES = [0.9,0.8,0.7]
 RANDOM_SEED = 1234
 
-def make_random_unknowns(coverage, data):
-    '''Change random data points from data to unknowns (?). coverage (float between 0..1) controls output size (percentage of known output data points relative to input data points, rounded to the nearest integer. data expected to be in format similar to tiger-calculator. Ensures that every column retains at least 1  character.'''
+def make_random_unknowns(coverage, data, retain_sets = True):
+    '''Change random data points from data to unknowns (?). coverage (float between 0..1) controls output size (percentage of known output data points relative to input data points, rounded to the nearest integer. data expected to be in format similar to tiger-calculator. Ensures that every column retains at least 1 character state. if retain_sets is True, the character state counts (e.g. the number of cognate sets) for each character is ensured to remain the same as it is in the input data; if retain_sets is False, character state counts are allowed to be reduced until 1.'''
     new_data = copy.deepcopy(data)
     taxa = new_data[0]
     chars = new_data[1]
     names = new_data[2]
     total_count = len(chars) * len(chars[0])         # theoretical maximum of data points. Some will be ?s.
-    min_valid_count = len(chars[0])                  # practical minimum of data points for a valid dataset
     requested_count = round(total_count * coverage)  # how many data points we want
-    valid_positions = {}                             # dict indexing per aligned character
+    valid_positions = {}                             # dict indexing data per aligned character
+    character_states = {}                            # character states for each aligned character
     valid_count = 0                                  # actual number of data points
     for i in range(len(chars[0])):
         valid_positions[i] = []
+        character_states[i] = set() 
     for i in range(len(chars)):
         for j in range(len(chars[i])):
             if chars[i][j] != "?":
                 valid_positions[j].append(i)
                 valid_count += 1
-    # Sanity checks
+                character_states[j].add(chars[i][j])
+    if retain_sets == False:
+        for i in character_states:
+            character_states[i] = set(random.choice(list(character_states[i]))) # 1 random state per position
+    # Eliminate empty keys
+    for a in valid_positions.keys():               
+        if len(valid_positions[a]) == 0:
+           valid_positions.pop(a, None)
+    old_states = copy.deepcopy(character_states)
+    # Prerequisite sanity checks
+    min_valid_count = 0                       # at least one of each character state must remain
+    for k in character_states.keys():
+        min_valid_count += len(character_states[k])
+
     if requested_count < min_valid_count:             # requesting less data than practical minimum
-        print("Cannot reduce datapoints beyond " + str(min_valid_count) + "; requested: " + str(requested_count))
-        return data
+        print("Cannot reduce data beyond "
+              + str(min_valid_count) + " data points ("
+              + str(round(float(min_valid_count) / total_count * 100, 2))
+              + "%); requested: " + str(requested_count) + " data points (" + str(coverage * 100) + "%)")
+        return None
+
     if requested_count > valid_count:             # requesting more data points than available
-        print("Requested number of datapoints (" + str(requested_count) + ") exceeds number of recorded datapoints (" + str(valid_count) + ")")
+        print("Requested number of data points (" + str(requested_count) + ") exceeds number of recorded data points (" + str(valid_count) + ")")
+        return None
+
+    if requested_count == valid_count:            # data already at the requested size
+        print("Data already of requested size (" + str(requested_count) + " data points)")
         return data
-    if requested_count == valid_positions:            # data already at the requested size
-        print("Data already of requested size (" + str(requested_count) + " datapoints)")
-        return data
-    for k in valid_positions.keys():
-        if len(valid_positions[k]) < 2:              # avoid positions with just one data point
-            valid_positions.pop(k, None)
-    counter = valid_count - requested_count         # number of data point we need to remove
+
+    counter = valid_count - requested_count       # counter for data points to remove
     while True:
         if counter == 0:
-            break                                   # we are successfully done
+            break
         a = random.choice(list(valid_positions.keys()))
         random.shuffle(valid_positions[a])
-        b = valid_positions[a].pop()
+        b = valid_positions[a].pop()                    
+        if chars[b][a] in character_states[a]:  # we do not yet have a representative for this character
+            character_states[a].remove(chars[b][a])
+            if len(valid_positions[a]) == 0:
+                valid_positions.pop(a, None)
+            continue
         chars[b][a] = "?"
         counter -= 1
-        if len(valid_positions[a]) < 2:          # ensure we don't remove last character from any column
+        if len(valid_positions[a]) == 0:
             valid_positions.pop(a, None)
-    print("Original data: " + str(valid_count) + " data points => New data: " + str(requested_count) + " data points")
+    # Sanity checks: all character states remain if retain_sets is True; number of valid characters
+    # is as requested
+    valid_chars = 0
+    new_states = {}
+    for i in range(len(chars[0])):
+        new_states[i] = set() 
+    for i in range(len(chars)):
+        for j in range(len(chars[i])):
+            if chars[i][j] != "?":
+                new_states[j].add(chars[i][j])
+                valid_chars += 1
+    for i in old_states.keys():
+        if retain_sets:
+            assert(old_states[i] == new_states[i])
+    assert(valid_chars == requested_count)
+
+    print("Original data coverage: "
+          + str(valid_count) + " data points ("
+          + str(round(float(valid_count) / total_count * 100, 2)) + " %)"
+          + " => New data coverage: "
+          + str(requested_count) + " data points ("
+          + str(round(float(requested_count) / total_count * 100, 2)) + " %)"
+          )
     return [taxa,chars,names]
 
 def make_random_gaps(coverage, data):
@@ -154,6 +198,9 @@ if __name__ == '__main__':
         for c in COVERAGES:
             gapped_content = make_random_gaps(coverage=c, data=content)
             missing_content = make_random_unknowns(coverage=c, data=content)
+            if gapped_content == None or missing_content == None:
+                print("Something went wrong. Exiting.")
+                exit(1)
             outfile_gapped = os.path.join(DATAGAPS_DIR, current_data + str(c) + "_gaps.csv")
             outfile_missing = os.path.join(DATAGAPS_DIR, current_data + str(c) + "_unknowns.csv")            
             write_harvest_csv(gapped_content, outfile_gapped)
