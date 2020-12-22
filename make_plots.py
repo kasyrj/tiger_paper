@@ -44,7 +44,7 @@ def tiger_rate_dist_plot():
             rates.extend([float(line.strip().split()[-1])])
     fig, ax = plt.subplots()
     ax.hist(rates,19)
-    ax.set_xlabel("TIGER rate")
+    ax.set_xlabel("TIGER value")
     ax.set_ylabel("Number of meanings")
     plt.tight_layout()
     plt.savefig("plots/uralex_rates_dist.png")
@@ -71,7 +71,7 @@ def tiger_rate_plot():
     sns.set(style="whitegrid", palette="muted")
     sns.set_context("paper",font_scale=2.0)
     ax = sns.boxplot(data=df,order=list(reversed(data_names)), orient="h")
-    ax.set(xlabel='TIGER rates')
+    ax.set(xlabel='TIGER values')
     ax.set_xticks([0.00, 0.25,0.50,0.75,1.00])
     plt.xticks(rotation=90)
     plt.tight_layout()
@@ -104,7 +104,7 @@ def tiger_rates_semantic_categories():
     sns.set(style="whitegrid", palette="muted")
     sns.set_context("paper",font_scale=2.0)
     ax = sns.boxplot(data=df, orient="h")
-    ax.set(xlabel='TIGER rates by category')
+    ax.set(xlabel='TIGER values by category')
     ax.set_xticks([0.50,0.75,1.00])
     plt.xticks(rotation=90)
     plt.tight_layout()
@@ -150,7 +150,7 @@ def metric_comparison_plot():
     plt.xticks(rotation=90)
     plt.plot(x_axis[:-1], y_axis[:-1],"bo--")
     plt.plot(x_axis[-1], y_axis[-1],"bx")
-    plt.title("TIGER rate")
+    plt.title("TIGER value")
 
     y_axis = []
     for k in x_axis:
@@ -198,7 +198,7 @@ def tiger_rate_cognates_plot():
     plt.tight_layout()
     ax.scatter(rates_sorted, cognates_sorted)
     plt.yticks(y_axis[1::2])
-    ax.set_xlabel('TIGER rate')
+    ax.set_xlabel('TIGER value')
     ax.set_ylabel('Cognate count')
     plt.savefig("plots/tiger_rates_vs_cognates.png")
 
@@ -239,7 +239,7 @@ def param_exploration_plot():
             hue = "taxon_count",
             hue_order = ("10", "25", "50", "100", "250", "500"))
     ax.set(xlabel='Relative cognate birthrate')
-    ax.set(ylabel='Mean TIGER rate')
+    ax.set(ylabel='Mean TIGER value')
     ax.set_xticks([log(x, 10) for x in brs])
     ax.set_xticklabels(brs)
     plt.xticks(rotation=90)

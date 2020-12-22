@@ -26,9 +26,9 @@ PYTHON_CMD          = 'python3'
 URALEX_URL          = 'https://zenodo.org/record/1459402/files/lexibank/uralex-v1.0.zip?download=1'
 URALEX_ZIP          = "uralex-v1.0.zip"
 URALEX_FOLDER       = "lexibank-uralex-efe0a73"
-TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/f0152241a38bbba49bae28dceaf8d1b848bfbb30.zip'
+TIGER_URL           = 'https://github.com/kasyrj/tiger-calculator/archive/d8325684f8d6e60e52fcb3e6c7ad8205aa44ea33.zip'
 TIGER_ZIP           = "tiger-calculator.zip"
-TIGER_FOLDER        = "tiger-calculator-f0152241a38bbba49bae28dceaf8d1b848bfbb30"
+TIGER_FOLDER        = "tiger-calculator-d8325684f8d6e60e52fcb3e6c7ad8205aa44ea33"
 N_REPETITIONS       = 100
 N_EXPLORE_REPS      = 20
 URALEX_BASE         = "uralex"
@@ -71,7 +71,7 @@ def download_and_extract(url,filename,destination):
 def run_simulator(simulator, output_directory, filebase, repetitions=N_REPETITIONS):
 
     try:
-        os.mkdir(output_directory)
+        os.makedirs(output_directory, exist_ok=True)
     except OSError:
         print("Failed to create folder %s." % output_directory)
         exit(1)
@@ -180,7 +180,7 @@ def analyse_all_datasets():
     print("Processing UraLex data...")
     uralexdir = os.path.join(ANALYSIS_FOLDER,URALEX_BASE)
     try:
-        os.mkdir(uralexdir)
+        os.makedirs(uralexdir, exist_ok=True)
     except OSError:
         print("Failed to create folder %s." % uralexdir)
         exit(1)
@@ -279,10 +279,14 @@ def explore_parameter_space():
     for taxa_count in (10, 25, 50, 100, 250, 500):
         for i, relative_cognate_br in enumerate((theta**x for x in range(-8, 9))):
             basename = "{}_taxa_br_{}".format(taxa_count, i)
-            run_tree_model(subdirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br, reptitions=N_EXPLORE_REPS)
+            run_tree_model(subdirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br, repetitions=N_EXPLORE_REPS)
     for filename in sorted(glob.glob(os.path.join(subdirname,"*.csv"))):
         run_tiger(filename,["-f","harvest","-n"])
 
+def gap_test():
+    code,out,err = run([PYTHON_CMD, "make_gaps.py"])
+    print(err.decode("utf-8"), file=sys.stderr)
+        
 if __name__ == '__main__':
 
     download_and_extract(URALEX_URL, URALEX_ZIP, MATERIALS_FOLDER)
@@ -291,6 +295,7 @@ if __name__ == '__main__':
     generate_synthetic_datasets()
     analyse_all_datasets()
     explore_parameter_space()
+    gap_test()
 
     print("Tabulating agreements with simulations...")
     make_tables()
