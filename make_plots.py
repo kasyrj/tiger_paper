@@ -67,10 +67,10 @@ def tiger_rate_plot():
 
     data_names.sort(key=lambda x: df[x].mean())
 
-    plt.figure(figsize=(12,6))
+    plt.figure(figsize=(12,12))
     sns.set(style="whitegrid", palette="muted")
     sns.set_context("paper",font_scale=2.0)
-    ax = sns.boxplot(data=df,order=list(reversed(data_names)), orient="h")
+    ax = sns.violinplot(data=df,order=list(reversed(data_names)), orient="h")
     ax.set(xlabel='TIGER values')
     ax.set_xticks([0.00, 0.25,0.50,0.75,1.00])
     plt.xticks(rotation=90)
@@ -100,10 +100,10 @@ def tiger_rates_semantic_categories():
             categories[category].append(rates[meaning])
         df = pd.concat([pd.DataFrame({cat:rates}) for cat,rates in categories.items()])
 
-    plt.figure(figsize=(12,6))
+    plt.figure(figsize=(12,12))
     sns.set(style="whitegrid", palette="muted")
     sns.set_context("paper",font_scale=2.0)
-    ax = sns.boxplot(data=df, orient="h")
+    ax = sns.violinplot(data=df, orient="h", scale="count")
     ax.set(xlabel='TIGER values by category')
     ax.set_xticks([0.50,0.75,1.00])
     plt.xticks(rotation=90)
