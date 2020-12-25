@@ -20,10 +20,10 @@ import copy
 
 TIGER_PARAMS = ["-f","harvest","-n", "-i", "?"]
 
-IN_FILES = ["analyses/pure_tree/pure_tree_001.csv",
-            "analyses/borrowing_10/borrowing_10_001.csv",
-            "analyses/dialect/dialect_001.csv",
-            "analyses/swamp/swamp_001.csv",
+IN_FILES = [sorted(glob.glob("analyses/pure_tree/*_*1.csv"))[0],
+            sorted(glob.glob("analyses/borrowing_10/*_*1.csv"))[0],
+            sorted(glob.glob("analyses/dialect/*_*1.csv"))[0],
+            sorted(glob.glob("analyses/swamp/*_*1.csv"))[0],
             "analyses/uralex/uralex.csv"]
 
 DATASETS = ["pure_tree",
@@ -201,8 +201,8 @@ if __name__ == '__main__':
             if gapped_content == None or missing_content == None:
                 print("Something went wrong. Exiting.")
                 exit(1)
-            outfile_gapped = os.path.join(DATAGAPS_DIR, current_data + str(c) + "_gaps.csv")
-            outfile_missing = os.path.join(DATAGAPS_DIR, current_data + str(c) + "_unknowns.csv")            
+            outfile_gapped = os.path.join(DATAGAPS_DIR, current_data + "_" + str(c) + "_gaps.csv")
+            outfile_missing = os.path.join(DATAGAPS_DIR, current_data + "_" + str(c) + "_unknowns.csv")            
             write_harvest_csv(gapped_content, outfile_gapped)
             write_harvest_csv(missing_content, outfile_missing)
             master_script.run_tiger(outfile_gapped, TIGER_PARAMS, outfile_gapped)
