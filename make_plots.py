@@ -202,16 +202,19 @@ def tiger_rate_cognates_plot():
     ax.set_ylabel('Cognate count')
     plt.savefig("plots/tiger_rates_vs_cognates.png")
 
-def param_exploration_plot():
+def _read_param_exp_rates(directory, param_name, param_values):
+
+    # param_values is used to translate the numeric indicies (1, 2, 3,...) used
+    # in the filenames of simulated data/TIGER values, into the actual numeric
+    # values used
     ids = []
     taxon_counts = []
-    birth_rates = []
+    params = []
     mean_tigers = []
-    theta = 100**0.2
-    theta = 1000**0.125 # (8th root of 1000)
-    brs = [theta**x for x in range(-8, 9)]
-    for i, filename in enumerate(glob.glob("param_exploration/*_rates.txt")):
-        taxa, _, _, br, n = filename.split("/")[-1].split(".")[0].split("_")
+    for i, filename in enumerate(glob.glob(os.path.join(directory, "*_rates.txt"))):
+        print(filename)
+        taxa, _, _, param, n = filename.split("/")[-1].split(".")[0].split("_")
+        print(taxa, param, n)
         with open(filename, "r") as fp:
             x, N = 0, 0
             for line in fp:
@@ -222,29 +225,49 @@ def param_exploration_plot():
         ids.append(i)
         mean_tigers.append(x/N)
         taxon_counts.append(taxa)
-        birth_rates.append(log(brs[int(br)], 10))
+        params.append(param_values[int(param)])
     df = pd.DataFrame({"id": ids,
         "taxon_count": taxon_counts,
-        "birth_rate": birth_rates,
+        param_name: params,
         "mean_tiger": mean_tigers
         })
-    df.to_csv("param_exp.csv")
+#    df.to_csv(os.path.join(directory, "param_exp.csv"))
+    return df
+
+def param_exploration_plot():
+
+    theta = 1000**0.125 # (8th root of 1000)
+    brs = [theta**x for x in range(-8, 9)]
+    df =_read_param_exp_rates("param_exploration/tree", "birth_rate", brs)
+    make_param_exp_plot("tree_param_exploration.png", df, "birth_rate", "Relative cognate birthrate", brs, log_x=True)
+
+    alphas = (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0)
+    df =_read_param_exp_rates("param_exploration/swamp", "alpha", alphas)
+    make_param_exp_plot("swamp_param_exploration.png", df, "alpha", "Alpha parameter", alphas)
+
+    df =_read_param_exp_rates("param_exploration/chain", "alpha", alphas)
+    make_param_exp_plot("chain_param_exploration.png", df, "alpha", "Alpha parameter", alphas)
+
+def make_param_exp_plot(filename, df, param_col, param_fancy_name, param_values, log_x=False):
 
     plt.figure(figsize=(12,6))
     sns.set(style="whitegrid", palette="muted")
     sns.set_context("paper",font_scale=2.0)
     ax = sns.lineplot(data=df,
-            x = "birth_rate",
+            x = param_col,
             y = "mean_tiger",
             hue = "taxon_count",
             hue_order = ("10", "25", "50", "100", "250", "500"))
-    ax.set(xlabel='Relative cognate birthrate')
+    ax.set(xlabel=param_fancy_name)
     ax.set(ylabel='Mean TIGER value')
-    ax.set_xticks([log(x, 10) for x in brs])
-    ax.set_xticklabels(brs)
+    if log_x:
+        ax.set(xscale='log')
+    ax.set_xticks(param_values)
+    ax.set_xticklabels(["{:.3f}".format(x) if len(str(x)) > 3 else str(x) for x in param_values])
+    plt.xlim(min(param_values), max(param_values))
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.savefig("plots/param_exploration.png")
+    plt.savefig(os.path.join("plots", filename))
 
 def main():
     if not os.path.exists("plots"):
