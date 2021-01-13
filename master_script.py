@@ -275,9 +275,9 @@ def explore_parameter_space():
     print("Exploring tree model parameter space...")
 
     subdirname = os.path.join(dirname, "tree")
-    theta = 1000**0.125 # (8th root of 1000)
+    theta = 10**0.5 # (square root of 10)
     for taxa_count in (10, 25, 50, 100, 250, 500):
-        for i, relative_cognate_br in enumerate((theta**x for x in range(-8, 9))):
+        for i, relative_cognate_br in enumerate((theta**x for x in range(-6, 7))):
             basename = "{}_taxa_br_{}".format(taxa_count, i)
             run_tree_model(subdirname, basename, taxa_count, features=200, cognate_birthrate=relative_cognate_br, repetitions=N_EXPLORE_REPS)
     for filename in sorted(glob.glob(os.path.join(subdirname,"*.csv"))):
