@@ -38,6 +38,9 @@ class ChainSimulator():
                 print("Could not generate a suitable sample of features with many sampling attempts.")
                 exit(1)
 
+        # Sample concatenation / insertion mixture proportion
+        p = scipy.stats.beta(2,2).rvs()
+
         # Assign taxa to cognate classes
         for i, classes in enumerate(feature_sizes):
             # First, sample the multinomial probabilities.
@@ -57,7 +60,7 @@ class ChainSimulator():
             while len(segments) > 1:
                 random.shuffle(segments)
                 a, b = segments.pop(), segments.pop()
-                if random.random() < 0.75 or len(a) == len(b) == 1:
+                if random.random() < p or len(a) == len(b) == 1:
                     # Concatenate
                     c = a + b
                 else:
