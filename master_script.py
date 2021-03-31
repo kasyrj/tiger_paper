@@ -11,7 +11,7 @@ import os
 import glob
 import random
 import subprocess
-
+import numpy as np
 import scipy.stats
 
 from dollo import DolloSimulator
@@ -68,7 +68,7 @@ def download_and_extract(url,filename,destination):
     zf.close()
     print("Done.")
 
-def run_simulator(simulator, output_directory, filebase, repetitions=N_REPETITIONS):
+def run_simulator(simulator, output_directory, filebase, repetition=0):
 
     try:
         os.makedirs(output_directory, exist_ok=True)
@@ -76,29 +76,31 @@ def run_simulator(simulator, output_directory, filebase, repetitions=N_REPETITIO
         print("Failed to create folder %s." % output_directory)
         exit(1)
 
-    for i in range(repetitions):
-        data = simulator.generate_data()
-        output = data.format_output()
-        filename = os.path.join(output_directory,filebase + "_" + str(i+1).zfill(len(str(repetitions))) + ".csv")
-        write_lines_to_file(output, filename)
+    data = simulator.generate_data()
+    output = data.format_output()
+    filename = os.path.join(output_directory,filebase + "_" + str(repetition+1).zfill(3) + ".csv")
+    write_lines_to_file(output, filename)
 
 def run_tree_model(output_directory, filebase, languages, features, cognate_birthrate, cognate_gamma=1.0, borrowing_probability=0.0, repetitions=N_REPETITIONS):
-    simulator = DolloSimulator(languages, features, cognate_birthrate, cognate_gamma, borrowing_probability)
-    run_simulator(simulator, output_directory, filebase, repetitions)
+    for i in range(repetitions):
+        simulator = DolloSimulator(languages, features, cognate_birthrate, cognate_gamma, borrowing_probability, i)
+        run_simulator(simulator, output_directory, filebase, i)
 
 def run_tree_model_with_uralex_params(output_directory, filebase, borrowing_probability=0.0):
     run_tree_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_COG_BIRTH, 1.0, borrowing_probability)
 
-def run_chain_model(output_directory, filebase, languages, features, alpha, dist):
-    simulator = ChainSimulator(languages, features, alpha, dist)
-    run_simulator(simulator, output_directory, filebase)
+def run_chain_model(output_directory, filebase, languages, features, alpha, dist, repetitions=N_REPETITIONS):
+    for i in range(repetitions):
+        simulator = ChainSimulator(languages, features, alpha, dist)
+        run_simulator(simulator, output_directory, filebase, i)
 
 def run_chain_model_with_uralex_params(output_directory, filebase):
-    run_chain_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_ALPHA, URALEX_COG_DIST)
+    run_chain_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_ALPHA, URALEX_COG_DIST, repetitions=N_REPETITIONS)
 
-def run_swamp_model(output_directory, filebase, languages, features, alpha, dist):
-    simulator = SwampSimulator(languages, features, alpha, dist)
-    run_simulator(simulator, output_directory, filebase)
+def run_swamp_model(output_directory, filebase, languages, features, alpha, dist, repetitions=N_REPETITIONS):
+    for i in range(repetitions):
+        simulator = SwampSimulator(languages, features, alpha, dist)
+        run_simulator(simulator, output_directory, filebase, i)
 
 def run_swamp_model_with_uralex_params(output_directory, filebase):
     run_swamp_model(output_directory, filebase, URALEX_N_LANGS, URALEX_N_FEATURES, URALEX_ALPHA, URALEX_COG_DIST)

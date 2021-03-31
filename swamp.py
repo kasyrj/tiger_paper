@@ -65,7 +65,7 @@ class SwampSimulator():
 
         # Generate cognate class counts
         feature_sizes = self.dist.rvs(self._n_features)
-        test_counter = 100000
+        test_counter = 5000000
         while 0 in feature_sizes or max(feature_sizes) > self._n_langs:
             feature_sizes = self.dist.rvs(self._n_features)
             test_counter -= 1
@@ -95,7 +95,7 @@ class SwampSimulator():
                 # First, sample the multinomial probabilities.
                 multinomial_probs = scipy.stats.dirichlet.rvs(alpha=[self.alpha]*classes)[0]
                 # Now sample the counts of each class, after making `remaining` draws from the multinomial dist
-                multinomial_counts = scipy.stats.multinomial.rvs(n=remaining,p=multinomial_probs)
+                multinomial_counts = scipy.stats.multinomial.rvs(n=remaining,p=multinomial_probs/sum(multinomial_probs))
                 # Add the actual assignments to `assignments`
                 for j,count in enumerate(multinomial_counts):
                     assignments.extend([j]*count)

@@ -30,7 +30,7 @@ class ChainSimulator():
 
         # Generate cognate class counts
         feature_sizes = self.dist.rvs(self.n_features)
-        test_counter = 100000
+        test_counter = 5000000
         while 0 in feature_sizes or max(feature_sizes) > self.n_langs:
             feature_sizes = self.dist.rvs(self.n_features)
             test_counter -= 1
@@ -47,7 +47,7 @@ class ChainSimulator():
             multinomial_probs = scipy.stats.dirichlet.rvs(alpha=[self.alpha]*classes)[0]
             # Now sample the counts of each class, after making `remaining` draws from the multinomial dist
             # Everything needs to be above zero!
-            multinomial_counts = scipy.stats.multinomial.rvs(n=self.n_langs - classes,p=multinomial_probs)
+            multinomial_counts = scipy.stats.multinomial.rvs(n=self.n_langs-classes,p=multinomial_probs/sum(multinomial_probs))
             multinomial_counts = [c+1 for c in multinomial_counts]
             assert sum(multinomial_counts) == self.n_langs
             # Start off by structuring cognate classes as uninterrupted chains of consecutive languages,
