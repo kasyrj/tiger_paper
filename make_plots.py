@@ -160,7 +160,7 @@ def metric_comparison_plot():
     plt.xticks(rotation=90)
     plt.plot(x_axis[:-1], y_axis[:-1],"bo--")
     plt.plot(x_axis[-1], y_axis[-1],"bx")
-    plt.title("delta score")
+    plt.title("δ score")
 
     y_axis = []
     for k in x_axis:
